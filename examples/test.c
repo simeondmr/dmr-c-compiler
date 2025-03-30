@@ -1,3 +1,3 @@
 int main(void) {
-    return 29;
+    return ~(---~((5)));
 }

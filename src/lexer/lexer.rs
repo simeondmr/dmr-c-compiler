@@ -17,6 +17,10 @@ pub enum Token {
     CurlyBracketOpen,
     CurlyBracketClose,
     Semicolon,
+    //Start unary operators
+    BitwiseComplement,
+    Negation,
+    //End unary operators
     Eof,
     Init,
     //Start keyword
@@ -36,14 +40,6 @@ impl Token {
 
         None
     }
-
-    pub fn extract_i32_val(&self) -> Option<i32> {
-        if let Token::NumberU32( val) = self {
-            return Some(*val as i32)
-        }
-
-        None
-    }
 }
 
 impl PartialEq for Token {
@@ -56,17 +52,13 @@ impl PartialEq for Token {
             (Token::CurlyBracketOpen, Token::CurlyBracketOpen) => true,
             (Token::CurlyBracketClose, Token::CurlyBracketClose) => true,
             (Token::Semicolon, Token::Semicolon) => true,
+            (Token::BitwiseComplement, Token::BitwiseComplement) => true,
+            (Token::Negation, Token::Negation) => true,
             (Token::SingleElem(element0), Token::SingleElem(element1)) => if element0 == element1{ true } else { false },
             (Token::Int, Token::Int) => true,
             (Token::Void, Token::Void) => true,
             (Token::Return, Token::Return) => true,
-
-
-
-
             (Token::Eof, Token::Eof) => true,
-
-
             _ => false
         }
     }
@@ -188,6 +180,16 @@ impl Lexer {
 
             if c == ';' {
                 self.current_token = Token::Semicolon;
+                return Ok(self.current_token.clone())
+            }
+
+            if c == '~' {
+                self.current_token = Token::BitwiseComplement;
+                return Ok(self.current_token.clone())
+            }
+
+            if c == '-' {
+                self.current_token = Token::Negation;
                 return Ok(self.current_token.clone())
             }
 

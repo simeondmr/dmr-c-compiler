@@ -1,17 +1,17 @@
-use crate::ast::asm_ast::program_asm_node::ProgramAsmNode;
 use crate::ast::lang_ast::function_node::FunctionNode;
-use crate::ast::lang_ast::lang_ast_visit_trait::{AstDebugPrinter, GenerateAsmAst};
+use crate::ast::lang_ast::lang_ast_visit_trait::{AstDebugPrinter, GenerateTacky};
 use crate::ast::lang_ast::program_node::ProgramNode::ProgramDef;
+use crate::tacky::tacky_program_node::ProgramTackyNode;
 
 #[derive(Debug)]
 pub enum ProgramNode {
     ProgramDef(FunctionNode)
 }
 
-impl GenerateAsmAst<ProgramAsmNode> for ProgramNode {
-    fn to_asm_ast(&self) -> ProgramAsmNode {
+impl GenerateTacky<ProgramTackyNode> for ProgramNode {
+    fn to_tacky(&self) -> ProgramTackyNode {
         let ProgramDef(func_node) = self;
-        ProgramAsmNode::ProgramAsmDef(func_node.to_asm_ast())
+        ProgramTackyNode::ProgramDef(func_node.to_tacky())
     }
 }
 

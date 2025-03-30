@@ -1,19 +1,19 @@
-use crate::ast::asm_ast::asm_function_node::FunctionAsmNode;
 use crate::ast::lang_ast::function_node::FunctionNode::FunctionDef;
-use crate::ast::lang_ast::lang_ast_visit_trait::{AstDebugPrinter, GenerateAsmAst, GenerateListAsmInstructions};
+use crate::ast::lang_ast::lang_ast_visit_trait::{AstDebugPrinter, GenerateTacky, GenerateTackyInstructions};
 use crate::ast::lang_ast::statement_node::StatementNode;
+use crate::tacky::tacky_function_node::FunctionTackyNode;
 
 #[derive(Debug)]
 pub enum FunctionNode {
     FunctionDef(String, StatementNode)
 }
 
-impl GenerateAsmAst<FunctionAsmNode> for FunctionNode {
-    fn to_asm_ast(&self) -> FunctionAsmNode {
-        let FunctionDef(func_name, stmt_node) = self;
-        let mut asm_instructions = Vec::new();
-        stmt_node.to_asm_ast(&mut asm_instructions);
-        FunctionAsmNode::FunctionAsmDef(func_name.to_string(), asm_instructions)
+impl GenerateTacky<FunctionTackyNode> for FunctionNode {
+    fn to_tacky(&self) -> FunctionTackyNode {
+        let FunctionDef(func_name, statement_node) = self;
+        let mut tacky_instructions = Vec::new();
+        statement_node.to_tacky(&mut tacky_instructions);
+        FunctionTackyNode::FunctionDef(func_name.to_string(), tacky_instructions)
     }
 }
 
