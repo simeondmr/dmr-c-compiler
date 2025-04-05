@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
+use std::path::Path;
 use std::sync::{Mutex, OnceLock};
 use crate::errors::errors::CompilerErrors;
 
@@ -72,7 +73,7 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    pub fn new(file_name: String) -> Lexer {
+    pub fn new(file_name: &Path) -> Lexer {
         Lexer {
             file: File::open(file_name).expect("errore apertura file"),
             current_line: 1,

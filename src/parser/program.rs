@@ -1,3 +1,4 @@
+use std::path::Path;
 use std::sync::{Mutex, MutexGuard};
 use crate::ast::lang_ast::program_node::ProgramNode;
 use crate::errors::errors::CompilerErrors;
@@ -28,21 +29,23 @@ pub trait GrammarProductionParsing<T> {
     }
 }
 
-pub struct Program {
+pub struct Program<'a> {
+    input_path: &'a Path,
     function: Function
 }
 
-impl Program {
-    pub fn new() -> Program {
+impl <'a> Program <'a> {
+    pub fn new(input_path: &Path) -> Program {
         Program {
             function: Function::new(),
+            input_path
         }
     }
 }
 
-impl GrammarProductionParsing<ProgramNode> for Program {
+impl <'a> GrammarProductionParsing<ProgramNode> for Program<'a> {
     fn parse(&self) -> Result<ProgramNode, CompilerErrors> {
-        LEXER_SINGLETON.get_or_init(|| Mutex::new(Lexer::new("C:\\Users\\stornabene\\IdeaProjects\\IdeaProjects\\Rust2024Projects\\dmr_c_compiler\\examples\\test.c".to_string())));
+        LEXER_SINGLETON.get_or_init(|| Mutex::new(Lexer::new(self.input_path)));
         Self::lexer().lock().unwrap().next_token()?;
         let function_node = self.function.parse()?;
         Self::match_token(&Token::Eof, &mut Self::lexer_lock())?;
