@@ -29,6 +29,65 @@ pub trait GrammarProductionParsing<T> {
     }
 }
 
+#[allow(dead_code)]
+pub trait PrecedenceClimbingParsing<T> {
+    fn parse(&self, min_prec: u8) -> Result<T, CompilerErrors>;
+
+    fn match_token(expected_token: &Token, lexer: &mut Lexer) -> Result<(), CompilerErrors> {
+        if *expected_token == lexer.current_token() {
+            lexer.next_token()?;
+            return Ok(())
+        }
+
+        eprintln!("Error at line {}: expected {:?}, but found {:?}", lexer.current_line(), expected_token, lexer.current_token());
+        Err(CompilerErrors::SyntaxError)
+    }
+
+    ///Use this method if you wanna lock the lexer
+    fn lexer_lock() -> MutexGuard<'static, Lexer> {
+        LEXER_SINGLETON.get().unwrap().lock().unwrap()
+    }
+
+    ///Use this methods if you don't want to lock the lexer
+    fn lexer() -> &'static Mutex<Lexer> {
+        LEXER_SINGLETON.get().unwrap()
+    }
+
+    fn is_operator(operator: &Token) -> bool {
+        match operator {
+            Token::BitwiseComplement => true,
+            Token::Negation => true,
+            Token::Add => true,
+            Token::Multiply => true,
+            Token::Divide => true,
+            Token::Reminder => true,
+            Token::BitwiseAnd => true,
+            Token::BitwiseOr => true,
+            Token::BitwiseXor => true,
+            Token::BitwiseLeftShift => true,
+            Token::BitwiseRightShift => true,
+            _ => false
+        }
+    }
+
+    fn operator_precedence(operator: &Token) -> Result<u8, CompilerErrors> {
+        match operator {
+            Token::BitwiseComplement => Ok(0),
+            Token::Negation => Ok(50),
+            Token::Add => Ok(50),
+            Token::Multiply => Ok(60),
+            Token::Divide => Ok(60),
+            Token::Reminder => Ok(60),
+            Token::BitwiseAnd => Ok(0),
+            Token::BitwiseOr => Ok(0),
+            Token::BitwiseXor => Ok(0),
+            Token::BitwiseLeftShift => Ok(0),
+            Token::BitwiseRightShift => Ok(0),
+            _ => Err(CompilerErrors::OperatorPrecedenceError)
+        }
+    }
+}
+
 pub struct Program<'a> {
     input_path: &'a Path,
     function: Function

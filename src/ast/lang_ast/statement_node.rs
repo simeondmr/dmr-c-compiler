@@ -1,11 +1,11 @@
-use crate::ast::lang_ast::exp_node::ExpNode;
+use crate::ast::lang_ast::expr_node::ExprNode;
 use crate::ast::lang_ast::lang_ast_visit_trait::{AstDebugPrinter, GenerateTackyInstructions};
 use crate::ast::lang_ast::statement_node::StatementNode::ReturnStmt;
 use crate::tacky::tacky_instruction_node::InstructionTackyNode;
 
 #[derive(Debug)]
 pub enum StatementNode {
-    ReturnStmt(ExpNode)
+    ReturnStmt(ExprNode)
 }
 
 impl GenerateTackyInstructions<()> for StatementNode {

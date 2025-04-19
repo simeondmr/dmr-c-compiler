@@ -13,7 +13,7 @@ impl GenerateTacky<FunctionTackyNode> for FunctionNode {
         let FunctionDef(func_name, statement_node) = self;
         let mut tacky_instructions = Vec::new();
         statement_node.to_tacky(&mut tacky_instructions);
-        FunctionTackyNode::FunctionDef(func_name.to_string(), tacky_instructions)
+        FunctionTackyNode::FunctionDef { func_name: func_name.to_string(), tacky_instructions }
     }
 }
 

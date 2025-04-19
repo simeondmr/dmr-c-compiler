@@ -1,12 +1,26 @@
 use crate::ast::asm_ast::asm_ast_visit_trait::{AsmReplacingPseudoregisters, AstAsmDebugPrinter};
+use crate::ast::asm_ast::asm_binary_operator_node::AsmBinaryOperatorNode;
 use crate::ast::asm_ast::asm_operand_node::OperandAsmNode;
-use crate::ast::asm_ast::asm_unary_operator_node::AsmUnaryOperator;
+use crate::ast::asm_ast::asm_unary_operator_node::AsmUnaryOperatorNode;
 use crate::codegen::stack_alloc_table::StackAllocTable;
 
 #[derive(Clone)]
 pub enum InstructionAsmNode {
-    Mov(OperandAsmNode, OperandAsmNode),
-    Unary(AsmUnaryOperator, OperandAsmNode),
+    Mov {
+        src: OperandAsmNode,
+        dest: OperandAsmNode,
+    },
+    Unary {
+        operator: AsmUnaryOperatorNode,
+        operand: OperandAsmNode
+    },
+    Binary {
+        operator: AsmBinaryOperatorNode,
+        src: OperandAsmNode,
+        dest: OperandAsmNode
+    },
+    Idiv(OperandAsmNode),
+    Cdq,
     AllocateStack(i32),
     Ret
 }
@@ -14,24 +28,33 @@ pub enum InstructionAsmNode {
 impl AstAsmDebugPrinter for InstructionAsmNode {
     fn debug_visit(&self) {
         match self {
-            InstructionAsmNode::Mov(src_operand, dest_operand) => {
+            InstructionAsmNode::Mov { src, dest } => {
                 print!("Mov ");
-                src_operand.debug_visit();
+                src.debug_visit();
                 print!(", ");
-                dest_operand.debug_visit();
+                dest.debug_visit();
                 println!();
             },
-            InstructionAsmNode::Unary(operator, operand) => {
+            InstructionAsmNode::Unary { operator, operand } => {
                 operator.debug_visit();
                 operand.debug_visit();
                 println!()
             },
-            InstructionAsmNode::AllocateStack(stack_offet) => {
-                println!("AllocateStack {}", *stack_offet);
+            InstructionAsmNode::Binary { operator, src, dest } => {
+                operator.debug_visit();
+                src.debug_visit();
+                println!(", ");
+                dest.debug_visit();
+                println!();
             },
-            InstructionAsmNode::Ret => {
-                println!("Ret");
-            }
+            InstructionAsmNode::Idiv(operand) => {
+                print!("idiv ");
+                operand.debug_visit();
+            },
+            InstructionAsmNode::Cdq => println!("cdq"),
+            InstructionAsmNode::AllocateStack(stack_offet) => println!("AllocateStack {}", *stack_offet),
+            InstructionAsmNode::Ret => println!("Ret")
+
         }
     }
 }
@@ -50,15 +73,19 @@ impl InstructionAsmNode {
 impl AsmReplacingPseudoregisters for InstructionAsmNode {
     fn replacing_pseudoregisters(&mut self, stack_alloc_table: &mut StackAllocTable) -> i32 {
         match self {
-            InstructionAsmNode::Mov(src, dest) => {
+            InstructionAsmNode::Mov { src, dest } | InstructionAsmNode::Binary { operator: _, src, dest } => {
                 let src_replaced = InstructionAsmNode::replace_operand(src, stack_alloc_table);
                 let dest_replaced = InstructionAsmNode::replace_operand(dest, stack_alloc_table);
-                *self = InstructionAsmNode::Mov(src_replaced.0, dest_replaced.0);
-                src_replaced.1.max(dest_replaced.1)
+                if let InstructionAsmNode::Binary { operator, src: _, dest: _ }= self {
+                    *self = InstructionAsmNode::Binary { operator: operator.clone(), src: src_replaced.0, dest: dest_replaced.0 };
+                } else {
+                    *self = InstructionAsmNode::Mov { src: src_replaced.0, dest: dest_replaced.0 };
+                }
+                src_replaced.1.min(dest_replaced.1)
             },
-            InstructionAsmNode::Unary(unary_operator, OperandAsmNode::Pseudo(pseudo_value)) => {
+            InstructionAsmNode::Unary { operator: unary_operator, operand: OperandAsmNode::Pseudo(pseudo_value) } => {
                 let pseudo_stack_address = stack_alloc_table.get_or_insert_pseudoregister(*pseudo_value);
-                *self = InstructionAsmNode::Unary(unary_operator.clone(), OperandAsmNode::Stack(pseudo_stack_address));
+                *self = InstructionAsmNode::Unary { operator: unary_operator.clone(), operand: OperandAsmNode::Stack(pseudo_stack_address) };
                 pseudo_stack_address
             },
             _ => 0

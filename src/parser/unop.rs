@@ -20,12 +20,12 @@ impl GrammarProductionParsing<UnaryOperatorNode> for Unop {
 
         if let Token::BitwiseComplement = current_token {
             lexer.next_token()?;
-            return Ok(UnaryOperatorNode::Complement)
+            Ok(UnaryOperatorNode::Complement)
         } else if let Token::Negation = current_token {
             lexer.next_token()?;
-            return Ok(UnaryOperatorNode::Negate)
+            Ok(UnaryOperatorNode::Negate)
         } else {
-            eprintln!("Error at line {}: unexpected {:?} token", lexer.current_line(), lexer.current_token());
+            eprintln!("Error at line {}: unexpected {:?} token", lexer.current_line(), current_token);
             Err(CompilerErrors::SyntaxError)
         }
     }

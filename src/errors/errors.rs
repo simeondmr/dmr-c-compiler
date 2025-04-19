@@ -6,5 +6,6 @@ pub enum CompilerErrors {
     LexicalError,
     SyntaxError,
     WrongParams,
+    OperatorPrecedenceError,
     IO(Error)
 }

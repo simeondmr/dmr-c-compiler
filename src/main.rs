@@ -1,7 +1,7 @@
 use std::env;
 use std::path::Path;
 use crate::ast::asm_ast::asm_ast_visit_trait::AstAsmDebugPrinter;
-use crate::ast::lang_ast::lang_ast_visit_trait::GenerateTacky;
+use crate::ast::lang_ast::lang_ast_visit_trait::{AstDebugPrinter, GenerateTacky};
 use crate::codegen::codegen_core::CodegenCore;
 use crate::parser::program::{GrammarProductionParsing, Program};
 use crate::errors::errors::CompilerErrors;
@@ -24,6 +24,9 @@ fn main() -> Result<(), CompilerErrors>  {
 
     let program = Program::new(&Path::new(args.get(1).unwrap()));
     let ast = program.parse()?;
+    println!("------------------------");
+    ast.debug_visit();
+    println!("------------------------");
     let tacky = ast.to_tacky();
     println!("Tacky debug:");
     tacky.visit_debug();

@@ -18,10 +18,19 @@ pub enum Token {
     CurlyBracketOpen,
     CurlyBracketClose,
     Semicolon,
-    //Start unary operators
+    //Start unary and binary operators
     BitwiseComplement,
     Negation,
-    //End unary operators
+    Add,
+    Multiply,
+    Divide,
+    Reminder,
+    BitwiseAnd,
+    BitwiseOr,
+    BitwiseXor,
+    BitwiseLeftShift,
+    BitwiseRightShift,
+    //End unary and binary operators
     Eof,
     Init,
     //Start keyword
@@ -154,9 +163,44 @@ impl Lexer {
                     self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
                 }
 
-
                 self.current_token = self.keywords.get(&ident).cloned().unwrap_or_else(|| Token::Literal(ident));
                 return Ok(self.current_token.clone());
+            }
+
+            if c == '<' {
+                //we need to read another character in order to understand if the operator is < or <<
+                let read_value = self.file.read_exact(&mut buf);
+                if let Ok(_) = read_value {
+                    if buf[0] as char == '<' {
+                        println!("Bitwise left shift");
+                        //bitwise left shift
+                        self.current_token = Token::BitwiseLeftShift;
+                        return Ok(self.current_token.clone())
+                    } else {
+                        eprintln!("Operator < not yet supported");
+                    }
+                } else {
+                    //EOF
+                    break;
+                }
+            }
+
+            if c == '>' {
+                //we need to read another character in order to understand if the operator is < or <<
+                let read_value = self.file.read_exact(&mut buf);
+                if let Ok(_) = read_value {
+                    if buf[0] as char == '>' {
+                        println!("Bitwise right shift");
+                        //bitwise left shift
+                        self.current_token = Token::BitwiseRightShift;
+                        return Ok(self.current_token.clone())
+                    } else {
+                        eprintln!("Operator > not yet supported");
+                    }
+                } else {
+                    //EOF
+                    break;
+                }
             }
 
             if c == '{' {
@@ -189,8 +233,43 @@ impl Lexer {
                 return Ok(self.current_token.clone())
             }
 
+            if c == '+' {
+                self.current_token = Token::Add;
+                return Ok(self.current_token.clone())
+            }
+
             if c == '-' {
                 self.current_token = Token::Negation;
+                return Ok(self.current_token.clone())
+            }
+
+            if c == '*' {
+                self.current_token = Token::Multiply;
+                return Ok(self.current_token.clone())
+            }
+
+            if c == '/' {
+                self.current_token = Token::Divide;
+                return Ok(self.current_token.clone())
+            }
+
+            if c == '%' {
+                self.current_token = Token::Reminder;
+                return Ok(self.current_token.clone())
+            }
+
+            if c == '&' {
+                self.current_token = Token::BitwiseAnd;
+                return Ok(self.current_token.clone())
+            }
+
+            if c == '|' {
+                self.current_token = Token::BitwiseOr;
+                return Ok(self.current_token.clone())
+            }
+
+            if c == '^' {
+                self.current_token = Token::BitwiseXor;
                 return Ok(self.current_token.clone())
             }
 

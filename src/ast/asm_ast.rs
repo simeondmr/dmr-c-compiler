@@ -5,3 +5,4 @@ pub mod asm_operand_node;
 pub mod asm_program_node;
 pub mod asm_registers_node;
 pub mod asm_unary_operator_node;
+pub mod asm_binary_operator_node;

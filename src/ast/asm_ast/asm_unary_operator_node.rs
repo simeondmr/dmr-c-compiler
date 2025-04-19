@@ -1,16 +1,16 @@
 use crate::ast::asm_ast::asm_ast_visit_trait::AstAsmDebugPrinter;
 
 #[derive(Clone, Debug)]
-pub enum AsmUnaryOperator {
+pub enum AsmUnaryOperatorNode {
     Negation,
     Not
 }
 
-impl AstAsmDebugPrinter for AsmUnaryOperator {
+impl AstAsmDebugPrinter for AsmUnaryOperatorNode {
     fn debug_visit(&self) {
         match self {
-            AsmUnaryOperator::Negation => print!("Negation "),
-            AsmUnaryOperator::Not => print!("Not ")
+            AsmUnaryOperatorNode::Negation => print!("Negation "),
+            AsmUnaryOperatorNode::Not => print!("Not ")
         }
     }
 }

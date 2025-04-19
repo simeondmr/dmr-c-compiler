@@ -31,6 +31,6 @@ impl GrammarProductionParsing<FunctionNode> for Function {
         let statement_ast = self.statement.parse()?;
         let mut lexer = Self::lexer_lock();
         Self::match_token(&Token::CurlyBracketClose, &mut lexer)?;
-        return Ok(FunctionNode::FunctionDef(function_name, statement_ast))
+        Ok(FunctionNode::FunctionDef(function_name, statement_ast))
     }
 }

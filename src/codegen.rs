@@ -7,3 +7,4 @@ pub mod asm_unary_operator_node_codegen;
 pub mod asm_codegen_trait;
 pub mod codegen_core;
 pub mod stack_alloc_table;
+pub mod asm_binary_operator_node_codegen;

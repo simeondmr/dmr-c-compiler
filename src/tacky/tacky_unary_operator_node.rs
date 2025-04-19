@@ -1,4 +1,4 @@
-use crate::ast::asm_ast::asm_unary_operator_node::AsmUnaryOperator;
+use crate::ast::asm_ast::asm_unary_operator_node::AsmUnaryOperatorNode;
 use crate::tacky::tacky_visit_trait::{GenerateAsm, TackyVisitDebug};
 
 pub enum UnaryOperatorTackyNode {
@@ -15,11 +15,11 @@ impl TackyVisitDebug for UnaryOperatorTackyNode {
     }
 }
 
-impl GenerateAsm<AsmUnaryOperator> for UnaryOperatorTackyNode {
-    fn to_asm(&self) -> AsmUnaryOperator {
+impl GenerateAsm<AsmUnaryOperatorNode> for UnaryOperatorTackyNode {
+    fn to_asm(&self) -> AsmUnaryOperatorNode {
         match self {
-            UnaryOperatorTackyNode::Complement => AsmUnaryOperator::Not,
-            UnaryOperatorTackyNode::Negate => AsmUnaryOperator::Negation
+            UnaryOperatorTackyNode::Complement => AsmUnaryOperatorNode::Not,
+            UnaryOperatorTackyNode::Negate => AsmUnaryOperatorNode::Negation
         }
     }
 }
