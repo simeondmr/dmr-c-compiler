@@ -3,7 +3,7 @@ use crate::ast::asm_ast::asm_ast_visit_trait::{AsmReplacingPseudoregisters, AstA
 use crate::ast::asm_ast::asm_binary_operator_node::AsmBinaryOperatorNode;
 use crate::ast::asm_ast::asm_instruction_node::InstructionAsmNode;
 use crate::ast::asm_ast::asm_operand_node::OperandAsmNode;
-use crate::ast::asm_ast::asm_registers_node::Reg;
+use crate::ast::asm_ast::asm_registers_node::{RcxReg, Reg};
 use crate::codegen::stack_alloc_table::StackAllocTable;
 
 /// This enum provides a Node for defining functions node
@@ -45,7 +45,6 @@ impl FixingInstruction for FunctionAsmNode {
         while instruction_index < asm_instructions.len() {
             let current_instruction = asm_instructions.get(instruction_index).cloned();
             match current_instruction {
-                None => { },
                 Some(InstructionAsmNode::Mov { src: OperandAsmNode::Stack(src_offset), dest: OperandAsmNode::Stack(dest_offset) })=> {
                     asm_instructions[instruction_index] = InstructionAsmNode::Mov { src: OperandAsmNode::Stack(src_offset), dest: OperandAsmNode::Register(Reg::R10) };
                     asm_instructions.insert(instruction_index + 1, InstructionAsmNode::Mov { src: OperandAsmNode::Register(Reg::R10), dest: OperandAsmNode::Stack(dest_offset) });
@@ -62,6 +61,11 @@ impl FixingInstruction for FunctionAsmNode {
                     asm_instructions.insert(instruction_index + 1, InstructionAsmNode::Binary { operator: AsmBinaryOperatorNode::Multiply, src, dest: OperandAsmNode::Register(Reg::R11) });
                     asm_instructions.insert(instruction_index + 2, InstructionAsmNode::Mov { src: OperandAsmNode::Register(Reg::R11), dest: OperandAsmNode::Stack(dest_offset) });
                     instruction_index += 3;
+                },
+                Some(InstructionAsmNode::Binary { operator, src: OperandAsmNode::Stack(src_offset), dest: OperandAsmNode::Stack(dest_offset) }) if matches!(operator, AsmBinaryOperatorNode::BitwiseLeftShift | AsmBinaryOperatorNode::BitwiseRightShift) => {
+                    asm_instructions[instruction_index] = InstructionAsmNode::Mov { src: OperandAsmNode::Stack(src_offset), dest: OperandAsmNode::Register(Reg::CX(RcxReg::ECX)) };
+                    asm_instructions.insert(instruction_index + 1, InstructionAsmNode::Binary { operator, src: OperandAsmNode::Register(Reg::CX(RcxReg::CL)), dest: OperandAsmNode::Stack(dest_offset) });
+                    instruction_index += 2;
                 },
                 Some(InstructionAsmNode::Binary { operator, src: OperandAsmNode::Stack(src_offset), dest: OperandAsmNode::Stack(dest_offset) }) => {
                     asm_instructions[instruction_index] = InstructionAsmNode::Mov { src: OperandAsmNode::Stack(src_offset), dest: OperandAsmNode::Register(Reg::R10) };

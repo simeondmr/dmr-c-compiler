@@ -21,7 +21,7 @@ impl Expr {
 
 impl PrecedenceClimbingParsing<ExprNode> for Expr {
     fn parse(&self, min_prec: u8) -> Result<ExprNode, CompilerErrors> {
-        let mut left_expr = self.factor.parse(min_prec);
+        let mut left_expr = self.factor.parse();
         let mut current_token = Expr::lexer_lock().current_token().clone();
         while Expr::is_operator(&current_token) && Expr::operator_precedence(&current_token)? >= min_prec {
             let operator_precedence = Expr::operator_precedence(&current_token)?;

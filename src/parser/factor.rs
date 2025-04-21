@@ -19,8 +19,8 @@ impl Factor {
     }
 }
 
-impl PrecedenceClimbingParsing<ExprNode> for Factor {
-    fn parse(&self, min_prec: u8) -> Result<ExprNode, CompilerErrors> {
+impl GrammarProductionParsing<ExprNode> for Factor {
+    fn parse(&self) -> Result<ExprNode, CompilerErrors> {
         let mut lexer = Self::lexer_lock();
         let current_token = lexer.current_token();
 
@@ -32,13 +32,13 @@ impl PrecedenceClimbingParsing<ExprNode> for Factor {
             Token::BitwiseComplement | Token::Negation => {
                 drop(lexer);
                 let expr = Expr::new();
-                Ok(ExprNode::Unary { unary_operator: self.unop.parse()?, expr: Box::new(expr.parse(min_prec)?) })
+                Ok(ExprNode::Unary { unary_operator: self.unop.parse()?, expr: Box::new(expr.parse(0)?) })
             },
             Token::RoundBracketOpen => {
                 lexer.next_token()?;
                 drop(lexer);
                 let expr = Expr::new();
-                let expr_node = expr.parse(min_prec);
+                let expr_node = expr.parse(0);
                 Self::match_token(&Token::RoundBracketClose, &mut Self::lexer_lock())?;
                 expr_node
             },

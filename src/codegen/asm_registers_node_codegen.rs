@@ -7,6 +7,7 @@ impl Codegen for Reg {
     fn codegen(&self, output_file: &mut File) -> Result<(), Error> {
         match self {
             Reg::AX => Ok(output_file.write_all("%eax".as_bytes())?),
+            Reg::CX(part) => Ok(output_file.write_all(format!("%{:?}", part).as_bytes())?),
             Reg::DX => Ok(output_file.write_all("%edx".as_bytes())?),
             Reg::R10 => Ok(output_file.write_all("%r10d".as_bytes())?),
             Reg::R11 => Ok(output_file.write_all("%r11d".as_bytes())?)

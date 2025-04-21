@@ -81,8 +81,8 @@ pub trait PrecedenceClimbingParsing<T> {
             Token::BitwiseAnd => Ok(0),
             Token::BitwiseOr => Ok(0),
             Token::BitwiseXor => Ok(0),
-            Token::BitwiseLeftShift => Ok(0),
-            Token::BitwiseRightShift => Ok(0),
+            Token::BitwiseLeftShift => Ok(40),
+            Token::BitwiseRightShift => Ok(40),
             _ => Err(CompilerErrors::OperatorPrecedenceError)
         }
     }

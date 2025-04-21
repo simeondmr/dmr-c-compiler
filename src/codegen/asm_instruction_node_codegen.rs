@@ -27,7 +27,7 @@ impl Codegen for InstructionAsmNode {
 
             },
             InstructionAsmNode::Idiv(operator) => {
-                output_file.write_all("idiv ".as_bytes())?;
+                output_file.write_all("idivl ".as_bytes())?;
                 operator.codegen(output_file)?;
                 Ok(output_file.write_all("\n".as_bytes())?)
             },
