@@ -13,6 +13,8 @@ mod errors;
 mod ast;
 mod tacky;
 mod codegen;
+mod instruction_fixing;
+mod replacing_pseudoregisters;
 
 fn main() -> Result<(), CompilerErrors>  {
     let args: Vec<String> = env::args().collect();

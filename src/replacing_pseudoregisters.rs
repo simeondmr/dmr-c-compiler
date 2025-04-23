@@ -1,0 +1,3 @@
+mod asm_function_node_replacing_pseudoregisters;
+mod asm_program_node_replacing_pseudoregisters;
+mod asm_instruction_node_replacing_pseudoregisters;

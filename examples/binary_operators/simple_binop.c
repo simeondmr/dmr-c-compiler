@@ -1,3 +1,3 @@
 int main(void) {
-    return 3 * 5 + 1 + 2 + 3 / 3;
+    return 1 + 2 ^ 5 << 4;
 }

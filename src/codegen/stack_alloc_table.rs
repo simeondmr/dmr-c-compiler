@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 
 pub struct StackAllocTable {
-    current_stack_alloc_value: i32,
+    stack_offset: i32,
     pseudoregisters_address: HashMap<u32, i32>
 }
 
 impl StackAllocTable {
     pub fn new() -> StackAllocTable {
         StackAllocTable {
-            current_stack_alloc_value: 0,
+            stack_offset: 0,
             pseudoregisters_address: HashMap::new()
         }
     }
@@ -18,10 +18,13 @@ impl StackAllocTable {
         if let Some(address) = pseudoregister_info {
             return *address;
         }
-
-        self.pseudoregisters_address.insert(pseudoregister_value, self.current_stack_alloc_value);
-        let pseudoregister_value = self.current_stack_alloc_value;
-        self.current_stack_alloc_value -= 4;
+        self.pseudoregisters_address.insert(pseudoregister_value, self.stack_offset);
+        let pseudoregister_value = self.stack_offset;
+        self.stack_offset -= 4;
         pseudoregister_value
+    }
+    
+    pub fn stack_offset(&self) -> i32 {
+        self.stack_offset
     }
 }

@@ -72,17 +72,17 @@ pub trait PrecedenceClimbingParsing<T> {
 
     fn operator_precedence(operator: &Token) -> Result<u8, CompilerErrors> {
         match operator {
-            Token::BitwiseComplement => Ok(0),
+            Token::BitwiseComplement => Ok(60),
             Token::Negation => Ok(50),
             Token::Add => Ok(50),
             Token::Multiply => Ok(60),
             Token::Divide => Ok(60),
             Token::Reminder => Ok(60),
-            Token::BitwiseAnd => Ok(0),
-            Token::BitwiseOr => Ok(0),
-            Token::BitwiseXor => Ok(0),
-            Token::BitwiseLeftShift => Ok(40),
-            Token::BitwiseRightShift => Ok(40),
+            Token::BitwiseAnd => Ok(45),
+            Token::BitwiseOr => Ok(45),
+            Token::BitwiseXor => Ok(45),
+            Token::BitwiseLeftShift => Ok(55),
+            Token::BitwiseRightShift => Ok(55),
             _ => Err(CompilerErrors::OperatorPrecedenceError)
         }
     }
