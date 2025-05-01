@@ -7,14 +7,12 @@ use crate::parser::unop::Unop;
 
 pub struct Factor {
     unop: Unop,
-  //  expr: Box<Expr>
 }
 
 impl Factor {
     pub fn new() -> Factor {
         Factor {
             unop: Unop::new(),
-           // expr: Box::new(Expr::new())
         }
     }
 }
@@ -23,13 +21,12 @@ impl GrammarProductionParsing<ExprNode> for Factor {
     fn parse(&self) -> Result<ExprNode, CompilerErrors> {
         let mut lexer = Self::lexer_lock();
         let current_token = lexer.current_token();
-
         match current_token {
             Token::NumberU32(value) => {
                 lexer.next_token()?;
                 Ok(ExprNode::Constant(value as i32))
             },
-            Token::BitwiseComplement | Token::Negation => {
+            Token::BitwiseComplement | Token::Negation | Token::Not => {
                 drop(lexer);
                 let expr = Expr::new();
                 Ok(ExprNode::Unary { unary_operator: self.unop.parse()?, expr: Box::new(expr.parse(0)?) })

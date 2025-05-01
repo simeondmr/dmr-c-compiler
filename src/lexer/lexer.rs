@@ -30,6 +30,15 @@ pub enum Token {
     BitwiseXor,
     BitwiseLeftShift,
     BitwiseRightShift,
+    Equal,
+    NotEqual,
+    LessThan,
+    LessThanOrEqual,
+    GreaterThan,
+    GreaterThanOrEqual,
+    And,
+    Or,
+    Not,
     //End unary and binary operators
     Eof,
     Init,
@@ -172,12 +181,16 @@ impl Lexer {
                 let read_value = self.file.read_exact(&mut buf);
                 if let Ok(_) = read_value {
                     if buf[0] as char == '<' {
-                        println!("Bitwise left shift");
                         //bitwise left shift
                         self.current_token = Token::BitwiseLeftShift;
                         return Ok(self.current_token.clone())
+                    } else if buf[0] as char == '=' {
+                        self.current_token = Token::LessThanOrEqual;
+                        return Ok(self.current_token.clone())
                     } else {
-                        eprintln!("Operator < not yet supported");
+                        self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
+                        self.current_token = Token::LessThan;
+                        return Ok(self.current_token.clone())
                     }
                 } else {
                     //EOF
@@ -194,12 +207,49 @@ impl Lexer {
                         //bitwise left shift
                         self.current_token = Token::BitwiseRightShift;
                         return Ok(self.current_token.clone())
+                    } else if buf[0] as char == '=' {
+                        self.current_token = Token::GreaterThanOrEqual;
+                        return Ok(self.current_token.clone())
                     } else {
-                        eprintln!("Operator > not yet supported");
+                        self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
+                        self.current_token = Token::GreaterThan;
+                        return Ok(self.current_token.clone())
                     }
                 } else {
                     //EOF
                     break;
+                }
+            }
+
+            if c == '=' {
+                let read_value = self.file.read_exact(&mut buf);
+                if let Ok(_) = read_value {
+                    if buf[0] as char == '=' {
+                        // Equal operator
+                        self.current_token = Token::Equal;
+                        return Ok(self.current_token.clone())
+                    } else {
+                        //assignation
+                        self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
+                        eprintln!("Assignation not yet supported");
+                        return Err(CompilerErrors::LexicalError);
+                    }
+                }
+            }
+
+            if c == '!' {
+                let read_value = self.file.read_exact(&mut buf);
+                if let Ok(_) = read_value {
+                    if buf[0] as char == '=' {
+                        //not equal
+                        self.current_token = Token::NotEqual;
+                        return Ok(self.current_token.clone())
+                    } else {
+                        //logical Not
+                        self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
+                        self.current_token = Token::Not;
+                        return Ok(self.current_token.clone())
+                    }
                 }
             }
 
@@ -259,13 +309,35 @@ impl Lexer {
             }
 
             if c == '&' {
-                self.current_token = Token::BitwiseAnd;
-                return Ok(self.current_token.clone())
+                let read_value = self.file.read_exact(&mut buf);
+                if let Ok(_) = read_value {
+                    if buf[0] as char == '&' {
+                        // Logical and
+                        self.current_token = Token::And;
+                        return Ok(self.current_token.clone())
+                    } else {
+                        // Bitwise and
+                        self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
+                        self.current_token = Token::BitwiseAnd;
+                        return Ok(self.current_token.clone())
+                    }
+                }
             }
 
             if c == '|' {
-                self.current_token = Token::BitwiseOr;
-                return Ok(self.current_token.clone())
+                let read_value = self.file.read_exact(&mut buf);
+                if let Ok(_) = read_value {
+                    if buf[0] as char == '|' {
+                        // Logical or
+                        self.current_token = Token::Or;
+                        return Ok(self.current_token.clone())
+                    } else {
+                        // Bitwise or
+                        self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
+                        self.current_token = Token::BitwiseOr;
+                        return Ok(self.current_token.clone())
+                    }
+                }
             }
 
             if c == '^' {

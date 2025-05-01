@@ -1,5 +1,5 @@
 # dmr C Compiler
-It's a small C compiler 
+It's a small C compiler for x86-64 architecture
 
 ## 🚀 Getting Started
 The project is still a work in progress, but you can try to compile the examples in the [`/examples`](./examples)

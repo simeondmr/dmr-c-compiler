@@ -66,6 +66,15 @@ pub trait PrecedenceClimbingParsing<T> {
             Token::BitwiseXor => true,
             Token::BitwiseLeftShift => true,
             Token::BitwiseRightShift => true,
+            Token::Equal => true,
+            Token::NotEqual => true,
+            Token::LessThan => true,
+            Token::LessThanOrEqual => true,
+            Token::GreaterThan => true,
+            Token::GreaterThanOrEqual => true,
+            Token::And => true,
+            Token::Or => true,
+            Token::Not => true,
             _ => false
         }
     }
@@ -83,6 +92,14 @@ pub trait PrecedenceClimbingParsing<T> {
             Token::BitwiseXor => Ok(45),
             Token::BitwiseLeftShift => Ok(55),
             Token::BitwiseRightShift => Ok(55),
+            Token::Equal => Ok(30),
+            Token::NotEqual => Ok(30),
+            Token::LessThan => Ok(35),
+            Token::LessThanOrEqual => Ok(35),
+            Token::GreaterThan => Ok(35),
+            Token::GreaterThanOrEqual => Ok(35),
+            Token::And => Ok(10),
+            Token::Or => Ok(5),
             _ => Err(CompilerErrors::OperatorPrecedenceError)
         }
     }

@@ -21,7 +21,42 @@ pub enum InstructionAsmNode {
     Idiv(OperandAsmNode),
     Cdq,
     AllocateStack(i32),
+    Cmp(OperandAsmNode, OperandAsmNode),
+    Jmp(u32),
+    JmpCC {
+        condition_code: ConditionCode,
+        jmp_label_target: u32
+    },
+    Set {
+        condition_code: ConditionCode,
+        dest: OperandAsmNode
+    },
+    Label(u32),
     Ret
+}
+
+#[derive(Clone)]
+#[derive(Debug)]
+pub enum ConditionCode {
+    E,
+    Ne,
+    G,
+    Ge,
+    L,
+    Le
+}
+
+impl ConditionCode {
+    pub fn code(&self) -> &str {
+        match self {
+            ConditionCode::E => "e",
+            ConditionCode::Ne => "ne",
+            ConditionCode::G => "g",
+            ConditionCode::Ge => "ge",
+            ConditionCode::L => "l",
+            ConditionCode::Le => "le"
+        }
+    }
 }
 
 impl AstAsmDebugPrinter for InstructionAsmNode {
@@ -52,6 +87,11 @@ impl AstAsmDebugPrinter for InstructionAsmNode {
             },
             InstructionAsmNode::Cdq => println!("cdq"),
             InstructionAsmNode::AllocateStack(stack_offet) => println!("AllocateStack {}", *stack_offet),
+            InstructionAsmNode::JmpCC { condition_code, jmp_label_target} => println!("JmpCC{:?} .l{}", condition_code, jmp_label_target),
+            InstructionAsmNode::Cmp(val0, val1) => println!("Cmp {:?} {:?}", val0, val1),
+            InstructionAsmNode::Jmp(jmp_label_target) => println!("Jmp .l{}", jmp_label_target),
+            InstructionAsmNode::Set { condition_code, dest } => println!("set{:?} {:?}", condition_code, dest),
+            InstructionAsmNode::Label(index) => println!(".l{}:", index),
             InstructionAsmNode::Ret => println!("Ret")
 
         }

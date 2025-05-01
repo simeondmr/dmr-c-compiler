@@ -9,7 +9,13 @@ pub enum AsmBinaryOperatorNode {
     BitwiseOr,
     BitwiseXor,
     BitwiseLeftShift,
-    BitwiseRightShift
+    BitwiseRightShift,
+    Equal,
+    NotEqual,
+    LessThan,
+    LessThanOrEqual,
+    GreaterThan,
+    GreaterThanOrEqual
 }
 
 impl AstAsmDebugPrinter for AsmBinaryOperatorNode {
@@ -23,6 +29,12 @@ impl AstAsmDebugPrinter for AsmBinaryOperatorNode {
             AsmBinaryOperatorNode::BitwiseXor => println!("BitwiseXor"),
             AsmBinaryOperatorNode::BitwiseLeftShift => println!("BitwiseLeftShift"),
             AsmBinaryOperatorNode::BitwiseRightShift => println!("BitwiseRightShift"),
+            AsmBinaryOperatorNode::Equal => println!("Equal"),
+            AsmBinaryOperatorNode::NotEqual => println!("NotEqual"),
+            AsmBinaryOperatorNode::LessThan => println!("LessThan"),
+            AsmBinaryOperatorNode::LessThanOrEqual => println!("LessThanOrEqual"),
+            AsmBinaryOperatorNode::GreaterThan => println!("GreaterThan"),
+            AsmBinaryOperatorNode::GreaterThanOrEqual => println!("GreaterThanOrEqual"),
         }
     }
 }

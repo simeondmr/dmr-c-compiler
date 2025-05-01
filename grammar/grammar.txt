@@ -5,7 +5,7 @@ Grammar:
 <statement> ::= "return" <exp> ";"
 <exp> ::= <factor> | <exp> binop <exp>
 <factor> ::= <int> | <unop> <exp> | "(" <exp> ")"
-<unop> ::= "-" | "~"
+<unop> ::= "-" | "~" | "!"
 <binop> ::= "+"
           | "-"
           | "*"
@@ -16,5 +16,13 @@ Grammar:
           | "^"
           | "<<"
           | ">>"
+          | "=="
+          | "!="
+          | "<"
+          | "<="
+          | ">"
+          | ">="
+          | "&&"
+          | "||"
 <identifier> ::= ? An identifier token ?
 <int> ::= ? A constant token ?

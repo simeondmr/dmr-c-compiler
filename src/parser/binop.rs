@@ -29,6 +29,15 @@ impl GrammarProductionParsing<BinaryOperatorNode> for Binop {
             Token::BitwiseXor => Ok(BinaryOperatorNode::BitwiseXor),
             Token::BitwiseLeftShift => Ok(BinaryOperatorNode::BitwiseLeftShift),
             Token::BitwiseRightShift => Ok(BinaryOperatorNode::BitwiseRightShift),
+            Token::Equal => Ok(BinaryOperatorNode::Equal),
+            Token::NotEqual => Ok(BinaryOperatorNode::NotEqual),
+            Token::LessThan => Ok(BinaryOperatorNode::LessThan),
+            Token::LessThanOrEqual => Ok(BinaryOperatorNode::LessThanOrEqual),
+            Token::GreaterThan => Ok(BinaryOperatorNode::GreaterThan),
+            Token::GreaterThanOrEqual => Ok(BinaryOperatorNode::GreaterThanOrEqual),
+            Token::And => Ok(BinaryOperatorNode::And),
+            Token::Or => Ok(BinaryOperatorNode::Or),
+            Token::Not => Ok(BinaryOperatorNode::Not),
             _ => {
                 eprintln!("Error at line {}: unexpected {:?} token", lexer.current_line(), current_token);
                 Err(CompilerErrors::SyntaxError)

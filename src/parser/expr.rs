@@ -34,7 +34,6 @@ impl PrecedenceClimbingParsing<ExprNode> for Expr {
             });
             current_token = Expr::lexer_lock().current_token().clone();
         }
-
         left_expr
     }
 }

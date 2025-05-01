@@ -5,3 +5,4 @@ pub mod tacky_val_node;
 pub mod tacky_unary_operator_node;
 pub mod tacky_visit_trait;
 pub mod binary_operator_tacky_node;
+pub mod label_gen;

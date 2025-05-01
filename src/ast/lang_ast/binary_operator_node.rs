@@ -1,6 +1,7 @@
 use crate::ast::lang_ast::lang_ast_visit_trait::GenerateTacky;
 use crate::tacky::binary_operator_tacky_node::BinaryOperatorTackyNode;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum BinaryOperatorNode {
     Add,
@@ -12,7 +13,16 @@ pub enum BinaryOperatorNode {
     BitwiseOr,
     BitwiseXor,
     BitwiseLeftShift,
-    BitwiseRightShift
+    BitwiseRightShift,
+    Equal,
+    NotEqual,
+    LessThan,
+    LessThanOrEqual,
+    GreaterThan,
+    GreaterThanOrEqual,
+    Not,
+    And,
+    Or,
 }
 
 impl GenerateTacky<BinaryOperatorTackyNode> for BinaryOperatorNode {
@@ -27,7 +37,15 @@ impl GenerateTacky<BinaryOperatorTackyNode> for BinaryOperatorNode {
             BinaryOperatorNode::BitwiseOr => BinaryOperatorTackyNode::BitwiseOr,
             BinaryOperatorNode::BitwiseXor => BinaryOperatorTackyNode::BitwiseXor,
             BinaryOperatorNode::BitwiseLeftShift => BinaryOperatorTackyNode::BitwiseLeftShift,
-            BinaryOperatorNode::BitwiseRightShift => BinaryOperatorTackyNode::BitwiseRightShift
+            BinaryOperatorNode::BitwiseRightShift => BinaryOperatorTackyNode::BitwiseRightShift,
+            BinaryOperatorNode::LessThan => BinaryOperatorTackyNode::LessThan,
+            BinaryOperatorNode::LessThanOrEqual => BinaryOperatorTackyNode::LessThanOrEqual,
+            BinaryOperatorNode::GreaterThan => BinaryOperatorTackyNode::GreaterThan,
+            BinaryOperatorNode::GreaterThanOrEqual => BinaryOperatorTackyNode::GreaterThanOrEqual,
+            BinaryOperatorNode::Equal => BinaryOperatorTackyNode::Equal,
+            BinaryOperatorNode::NotEqual => BinaryOperatorTackyNode::NotEqual,
+            // Note: operators like &&, ||, ! obliviously cannot be converted into a TackyNode, so for covering them I decided to put an Empty Node
+            _ => BinaryOperatorTackyNode::Empty
         }
     }
 }

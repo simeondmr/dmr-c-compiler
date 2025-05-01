@@ -14,6 +14,8 @@ impl Codegen for AsmBinaryOperatorNode {
             AsmBinaryOperatorNode::BitwiseXor => Ok(output_file.write_all("\txorl ".as_bytes())?),
             AsmBinaryOperatorNode::BitwiseLeftShift => Ok(output_file.write_all("\tshll ".as_bytes())?),
             AsmBinaryOperatorNode::BitwiseRightShift => Ok(output_file.write_all("\tshrl ".as_bytes())?),
+            // Note: operators like AsmBinaryOperatorNode::Equal, AsmBinaryOperatorNode::NotEqual etc, obliviously haven't a direct translaction instruction like operators above 
+            _ =>  Ok(())
         }
     }
 }
