@@ -40,7 +40,7 @@ impl GenerateAsm<Option<AsmBinaryOperatorNode>> for BinaryOperatorTackyNode {
             BinaryOperatorTackyNode::LessThanOrEqual => Some(AsmBinaryOperatorNode::LessThanOrEqual),
             BinaryOperatorTackyNode::GreaterThan => Some(AsmBinaryOperatorNode::GreaterThan),
             BinaryOperatorTackyNode::GreaterThanOrEqual => Some(AsmBinaryOperatorNode::GreaterThanOrEqual),
-            // Note that this is an impossible case, because other operators like Multiply and Divide are managed in InstructionTackyNode
+            // Note: this is an impossible case, because other operators like Multiply and Divide are managed in InstructionTackyNode
             _ => None
         }
     }

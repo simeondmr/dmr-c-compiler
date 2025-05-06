@@ -13,5 +13,11 @@ To generate the assembly of an example file, run the compiler with the following
 
 ## Note
 
-Currently only expressions with unary and binary operators are implemented.
+Currently only expressions with unary and binary operators are implemented.\
 As you can see from the generated assembly, the code actually is not optimized but in the future I will implement this pass.
+
+## Important
+Please open an issue if you find a bug.\
+Feel free to fork the project if you wanna join.
+
+dmrsim-117

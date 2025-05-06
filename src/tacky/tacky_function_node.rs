@@ -10,19 +10,19 @@ pub enum FunctionTackyNode {
     }
 }
 
-impl TackyVisitDebug for FunctionTackyNode{
-    fn visit_debug(&self) {
-        let FunctionTackyNode::FunctionDef { func_name, tacky_instructions} = self;
-        println!("Name: {}", func_name);
-        tacky_instructions.iter().for_each(|instruction| instruction.visit_debug());
-    }
-}
-
 impl GenerateAsm<FunctionAsmNode> for FunctionTackyNode {
     fn to_asm(&self) -> FunctionAsmNode {
         let FunctionTackyNode::FunctionDef { func_name, tacky_instructions } = self;
         let mut asm_instructions = VecDeque::new();
         tacky_instructions.into_iter().for_each(|instruction| instruction.to_asm(&mut asm_instructions));
         FunctionAsmNode::FunctionAsmDef { func_name: func_name.clone(), asm_instructions }
+    }
+}
+
+impl TackyVisitDebug for FunctionTackyNode{
+    fn visit_debug(&self) {
+        let FunctionTackyNode::FunctionDef { func_name, tacky_instructions} = self;
+        println!("Name: {}", func_name);
+        tacky_instructions.iter().for_each(|instruction| instruction.visit_debug());
     }
 }

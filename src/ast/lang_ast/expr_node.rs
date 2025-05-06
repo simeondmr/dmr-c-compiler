@@ -1,6 +1,5 @@
 use std::sync::Mutex;
 use crate::ast::lang_ast::binary_operator_node::BinaryOperatorNode;
-use crate::ast::lang_ast::expr_node::ExprNode::{Binary, Constant, Unary};
 use crate::ast::lang_ast::lang_ast_visit_trait::{AstDebugPrinter, GenerateTacky, GenerateTackyInstructions};
 use crate::ast::lang_ast::unary_operator_node::UnaryOperatorNode;
 use crate::tacky::label_gen::{LabelGen, LABEL_GEN_SINGLETON};
@@ -18,20 +17,28 @@ pub enum ExprNode {
         binary_operator: BinaryOperatorNode,
         left_expr: Box<ExprNode>,
         right_expr: Box<ExprNode>
-    }
+    },
+    Assignment {
+        dest: Box<ExprNode>, 
+        expr: Box<ExprNode>
+    },
+    Var {
+        var_name: String,
+        var_name_index: u32
+    },
 }
 
 impl GenerateTackyInstructions<ValTackyNode> for ExprNode {
     fn to_tacky(&self, tacky_instructions: &mut Vec<InstructionTackyNode>) -> ValTackyNode {
         match self {
-            Constant(value) => ValTackyNode::Constant(*value),
-            Unary { unary_operator , expr } => {
+            ExprNode::Constant(value) => ValTackyNode::Constant(*value),
+            ExprNode::Unary { unary_operator , expr } => {
                 let src = expr.to_tacky(tacky_instructions);
                 let dest = ValTackyNode::Var(TemporaryVar::generate());
                 tacky_instructions.push(InstructionTackyNode::Unary { unary_operator: unary_operator.to_tacky(), src, dest: dest.clone() });
                 dest
             },
-            Binary { binary_operator , left_expr, right_expr}  if matches!(binary_operator, BinaryOperatorNode::And) => {
+            ExprNode::Binary { binary_operator , left_expr, right_expr}  if matches!(binary_operator, BinaryOperatorNode::And) => {
                 let left_exp_tacky_node = left_expr.to_tacky(tacky_instructions);
                 LABEL_GEN_SINGLETON.get_or_init(|| Mutex::new(LabelGen::new()));
                 let mut labelgen_singleton = LABEL_GEN_SINGLETON.get().unwrap().lock().unwrap();
@@ -47,8 +54,8 @@ impl GenerateTackyInstructions<ValTackyNode> for ExprNode {
                 tacky_instructions.push(InstructionTackyNode::Copy { src: ValTackyNode::Constant(0), dest: result.clone() });
                 tacky_instructions.push(InstructionTackyNode::Label(end_label));
                 result
-            }, 
-            Binary { binary_operator , left_expr, right_expr}  if matches!(binary_operator, BinaryOperatorNode::Or) => {
+            },
+            ExprNode::Binary { binary_operator , left_expr, right_expr}  if matches!(binary_operator, BinaryOperatorNode::Or) => {
                 let left_exp_tacky_node = left_expr.to_tacky(tacky_instructions);
                 LABEL_GEN_SINGLETON.get_or_init(|| Mutex::new(LabelGen::new()));
                 let mut labelgen_singleton = LABEL_GEN_SINGLETON.get().unwrap().lock().unwrap();
@@ -65,12 +72,29 @@ impl GenerateTackyInstructions<ValTackyNode> for ExprNode {
                 tacky_instructions.push(InstructionTackyNode::Label(end_label));
                 result
             },
-            Binary { binary_operator, left_expr, right_expr } => {
+            ExprNode::Binary { binary_operator, left_expr, right_expr } => {
                 let left_exp_tacky_node = left_expr.to_tacky(tacky_instructions);
                 let right_exp_tacky_node = right_expr.to_tacky(tacky_instructions);
                 let dest = ValTackyNode::Var(TemporaryVar::generate());
                 tacky_instructions.push(InstructionTackyNode::Binary { binary_operator: binary_operator.to_tacky(), left_expr: left_exp_tacky_node, right_expr: right_exp_tacky_node, dest: dest.clone() });
                 dest
+            },
+            ExprNode::Var { var_name: _, var_name_index} => {
+                // Note: after the semantic analisys the var_name_index is fixed
+                ValTackyNode::Var(*var_name_index)
+            },
+            ExprNode::Assignment { dest, expr } if matches!(&**dest, ExprNode::Var { var_name: _, var_name_index: _ }) => {
+                let right_tacky_node = expr.to_tacky(tacky_instructions);
+                let mut var_index = 0;
+                if let ExprNode::Var { var_name: _, var_name_index } = &**dest {
+                    var_index = *var_name_index;
+                }
+                tacky_instructions.push(InstructionTackyNode::Copy { src: right_tacky_node, dest: ValTackyNode::Var(var_index) });
+                ValTackyNode::Var(var_index)
+            },
+            _ => {
+                //Note: for covering ExprNode::Assignment(left_expr, right_expr) where left_expr is not a Var...note that here this case can't happen because of semantic analisys
+                ValTackyNode::Empty
             }
         }
     }
@@ -79,17 +103,27 @@ impl GenerateTackyInstructions<ValTackyNode> for ExprNode {
 impl AstDebugPrinter for ExprNode {
     fn debug_visit(&self) {
         match self {
-            Constant(value) => println!("Constant({})", value),
-            Unary { unary_operator, expr } => {
+            ExprNode::Constant(value) => println!("Constant({})", value),
+            ExprNode::Unary { unary_operator, expr } => {
                 println!("Unary {:?} (", unary_operator);
                 expr.debug_visit();
                 println!(")");
             },
-            Binary { binary_operator, left_expr, right_expr } => {
+            ExprNode::Binary { binary_operator, left_expr, right_expr } => {
                 println!("Binary {:?} (", binary_operator);
                 left_expr.debug_visit();
                 right_expr.debug_visit();
                 println!(")");
+            },
+            ExprNode::Assignment { dest, expr } => {
+                print!("Assignment(dest: ");
+                dest.debug_visit();
+                print!("expr: ");
+                expr.debug_visit();
+                println!(")");
+            },
+            ExprNode::Var { var_name, var_name_index} => {
+                println!("Var(var_name: {}, var_name_index: {})", var_name, var_name_index);
             }
         }
     }

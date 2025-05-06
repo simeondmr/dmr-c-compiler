@@ -39,6 +39,7 @@ pub enum Token {
     And,
     Or,
     Not,
+    Assignment,
     //End unary and binary operators
     Eof,
     Init,
@@ -74,6 +75,7 @@ impl PartialEq for Token {
             (Token::BitwiseComplement, Token::BitwiseComplement) => true,
             (Token::Negation, Token::Negation) => true,
             (Token::SingleElem(element0), Token::SingleElem(element1)) => if element0 == element1{ true } else { false },
+            (Token::Assignment, Token::Assignment) => true,
             (Token::Int, Token::Int) => true,
             (Token::Void, Token::Void) => true,
             (Token::Return, Token::Return) => true,
@@ -229,10 +231,10 @@ impl Lexer {
                         self.current_token = Token::Equal;
                         return Ok(self.current_token.clone())
                     } else {
-                        //assignation
+                        // Assignation
                         self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
-                        eprintln!("Assignation not yet supported");
-                        return Err(CompilerErrors::LexicalError);
+                        self.current_token = Token::Assignment;
+                        return Ok(self.current_token.clone())
                     }
                 }
             }
@@ -344,7 +346,7 @@ impl Lexer {
                 self.current_token = Token::BitwiseXor;
                 return Ok(self.current_token.clone())
             }
-
+            
             eprintln!("Error at line {}: unknow symbol: {}", self.current_line, c);
             return Err(CompilerErrors::LexicalError)
         }

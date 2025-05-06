@@ -3,7 +3,7 @@ use std::sync::{Mutex, MutexGuard};
 use crate::ast::lang_ast::program_node::ProgramNode;
 use crate::errors::errors::CompilerErrors;
 use crate::lexer::lexer::{Lexer, LEXER_SINGLETON, Token};
-use crate::parser::function::Function;
+use crate::parser::function_parse::FunctionParse;
 
 pub trait GrammarProductionParsing<T> {
     fn parse(&self) -> Result<T, CompilerErrors>;
@@ -75,6 +75,7 @@ pub trait PrecedenceClimbingParsing<T> {
             Token::And => true,
             Token::Or => true,
             Token::Not => true,
+            Token::Assignment => true,
             _ => false
         }
     }
@@ -100,30 +101,31 @@ pub trait PrecedenceClimbingParsing<T> {
             Token::GreaterThanOrEqual => Ok(35),
             Token::And => Ok(10),
             Token::Or => Ok(5),
+            Token::Assignment => Ok(1),
             _ => Err(CompilerErrors::OperatorPrecedenceError)
         }
     }
 }
 
-pub struct Program<'a> {
+pub struct ProgramParse<'a> {
     input_path: &'a Path,
-    function: Function
+    function_parse: FunctionParse
 }
 
-impl <'a> Program <'a> {
-    pub fn new(input_path: &Path) -> Program {
-        Program {
-            function: Function::new(),
+impl <'a> ProgramParse <'a> {
+    pub fn new(input_path: &Path) -> ProgramParse {
+        ProgramParse {
+            function_parse: FunctionParse::new(),
             input_path
         }
     }
 }
 
-impl <'a> GrammarProductionParsing<ProgramNode> for Program<'a> {
+impl <'a> GrammarProductionParsing<ProgramNode> for ProgramParse<'a> {
     fn parse(&self) -> Result<ProgramNode, CompilerErrors> {
         LEXER_SINGLETON.get_or_init(|| Mutex::new(Lexer::new(self.input_path)));
         Self::lexer().lock().unwrap().next_token()?;
-        let function_node = self.function.parse()?;
+        let function_node = self.function_parse.parse()?;
         Self::match_token(&Token::Eof, &mut Self::lexer_lock())?;
         Ok(ProgramNode::ProgramDef(function_node))
     }

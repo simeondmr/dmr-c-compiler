@@ -6,15 +6,13 @@ use crate::codegen::asm_codegen_trait::Codegen;
 impl Codegen for OperandAsmNode {
     fn codegen(&self, output_file: &mut File) -> Result<(), Error>{
         match self {
-            OperandAsmNode::Imm(value) => {
-                Ok(output_file.write_all(format!("${}", value).as_bytes())?)
-            },
+            OperandAsmNode::Imm(value) => Ok(output_file.write_all(format!("${}", value).as_bytes())?),
             OperandAsmNode::Register(reg) => reg.codegen(output_file),
-            OperandAsmNode::Pseudo(value) => {
-                Ok(output_file.write_all(format!("t{}", value).as_bytes())?)
-            },
-            OperandAsmNode::Stack(value) => {
-                Ok(output_file.write_all(format!("{}(%rsp)", value).as_bytes())?)
+            OperandAsmNode::Pseudo(value) => Ok(output_file.write_all(format!("t{}", value).as_bytes())?),
+            OperandAsmNode::Stack(value) => Ok(output_file.write_all(format!("{}(%rsp)", value).as_bytes())?),
+            _ => { 
+                // Note: this code will never be executed so, for Empty case there is nothing to do
+                Ok(())
             }
         }
     }

@@ -1,10 +1,17 @@
 Grammar:
 
 <program> ::= <function>
-<function> ::= "int" <identifier> "(" "void" ")" "{" <statement> "}"
+<function> ::= "int" <identifier> "(" "void" ")" "{" { <block-item> } "}"
+<block-item> ::= <declaration> | <statement>
 <statement> ::= "return" <exp> ";"
+              | <expr> ";"
+              | ";"
+<declaration> ::= "int" <identifier> [ "=" <expr> ] ";"
 <exp> ::= <factor> | <exp> binop <exp>
-<factor> ::= <int> | <unop> <exp> | "(" <exp> ")"
+<factor> ::= <int>
+           | <unop> <exp>
+           | "(" <exp> ")"
+           | <identifier>
 <unop> ::= "-" | "~" | "!"
 <binop> ::= "+"
           | "-"
@@ -24,5 +31,6 @@ Grammar:
           | ">="
           | "&&"
           | "||"
+          | "="
 <identifier> ::= ? An identifier token ?
 <int> ::= ? A constant token ?

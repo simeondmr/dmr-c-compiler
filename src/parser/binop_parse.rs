@@ -1,23 +1,22 @@
 use crate::ast::lang_ast::binary_operator_node::BinaryOperatorNode;
 use crate::errors::errors::CompilerErrors;
 use crate::lexer::lexer::Token;
-use crate::parser::program::GrammarProductionParsing;
+use crate::parser::program_parse::GrammarProductionParsing;
 
-pub struct Binop;
+pub struct BinopParse;
 
-impl Binop {
-    pub fn new() -> Binop {
-        Binop {
+impl BinopParse {
+    pub fn new() -> BinopParse {
+        BinopParse {
 
         }
     }
 }
 
-impl GrammarProductionParsing<BinaryOperatorNode> for Binop {
+impl GrammarProductionParsing<BinaryOperatorNode> for BinopParse {
     fn parse(&self) -> Result<BinaryOperatorNode, CompilerErrors> {
         let mut lexer = Self::lexer_lock();
         let current_token = lexer.current_token();
-
         let binary_operator_node = match current_token {
             Token::Negation => Ok(BinaryOperatorNode::Subtract),
             Token::Add => Ok(BinaryOperatorNode::Add),
@@ -43,9 +42,7 @@ impl GrammarProductionParsing<BinaryOperatorNode> for Binop {
                 Err(CompilerErrors::SyntaxError)
             }
         };
-
         lexer.next_token()?;
-
         binary_operator_node
     }
 }

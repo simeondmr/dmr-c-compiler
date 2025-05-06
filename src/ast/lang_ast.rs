@@ -5,3 +5,5 @@ pub mod statement_node;
 pub mod expr_node;
 pub mod unary_operator_node;
 pub mod binary_operator_node;
+pub mod declaration_node;
+pub mod block_item_node;

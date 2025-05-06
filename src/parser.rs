@@ -1,8 +1,9 @@
-pub mod program;
-mod function;
-mod statement;
-
-mod factor;
-mod unop;
-mod expr;
-mod binop;
+pub mod program_parse;
+pub mod function_parse;
+pub mod statement_parse; 
+pub mod factor_parse;
+pub mod unop_parse;
+pub mod expr_parse;
+pub mod binop_parse;
+pub mod block_item_parse;
+pub mod declaration_parse;

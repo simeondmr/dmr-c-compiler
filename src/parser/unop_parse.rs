@@ -1,19 +1,19 @@
 use crate::ast::lang_ast::unary_operator_node::UnaryOperatorNode;
 use crate::errors::errors::CompilerErrors;
 use crate::lexer::lexer::Token;
-use crate::parser::program::GrammarProductionParsing;
+use crate::parser::program_parse::GrammarProductionParsing;
 
-pub struct Unop;
+pub struct UnopParse;
 
-impl Unop {
-    pub fn new() -> Unop {
-        Unop {
+impl UnopParse {
+    pub fn new() -> UnopParse {
+        UnopParse {
 
         }
     }
 }
 
-impl GrammarProductionParsing<UnaryOperatorNode> for Unop {
+impl GrammarProductionParsing<UnaryOperatorNode> for UnopParse {
     fn parse(&self) -> Result<UnaryOperatorNode, CompilerErrors> {
         let mut lexer = Self::lexer_lock();
         let current_token = lexer.current_token();

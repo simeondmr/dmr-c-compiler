@@ -5,6 +5,7 @@ use std::io::Error;
 pub enum CompilerErrors {
     LexicalError,
     SyntaxError,
+    SemanticError,
     WrongParams,
     OperatorPrecedenceError,
     IO(Error)
