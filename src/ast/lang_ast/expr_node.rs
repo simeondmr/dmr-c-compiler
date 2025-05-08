@@ -2,6 +2,7 @@ use std::sync::Mutex;
 use crate::ast::lang_ast::binary_operator_node::BinaryOperatorNode;
 use crate::ast::lang_ast::lang_ast_visit_trait::{AstDebugPrinter, GenerateTacky, GenerateTackyInstructions};
 use crate::ast::lang_ast::unary_operator_node::UnaryOperatorNode;
+use crate::tacky::binary_operator_tacky_node::BinaryOperatorTackyNode;
 use crate::tacky::label_gen::{LabelGen, LABEL_GEN_SINGLETON};
 use crate::tacky::tacky_instruction_node::InstructionTackyNode;
 use crate::tacky::tacky_val_node::{TemporaryVar, ValTackyNode};
@@ -19,6 +20,7 @@ pub enum ExprNode {
         right_expr: Box<ExprNode>
     },
     Assignment {
+        assignment_type: AssignmentOperatorType,
         dest: Box<ExprNode>, 
         expr: Box<ExprNode>
     },
@@ -26,6 +28,21 @@ pub enum ExprNode {
         var_name: String,
         var_name_index: u32
     },
+}
+
+#[derive(Debug)]
+pub enum AssignmentOperatorType {
+    AssignmentDefault,
+    AssignmentAdd,
+    AssignmentSub,
+    AssignmentMultiply,
+    AssignmentDivide,
+    AssignmentReminder,
+    AssignmentBitwiseOr,
+    AssignmentBitwiseAnd,
+    AssignmentBitwiseXor,
+    AssignmentBitwiseLeftShift,
+    AssignmentBitwiseRightShift,
 }
 
 impl GenerateTackyInstructions<ValTackyNode> for ExprNode {
@@ -83,19 +100,41 @@ impl GenerateTackyInstructions<ValTackyNode> for ExprNode {
                 // Note: after the semantic analisys the var_name_index is fixed
                 ValTackyNode::Var(*var_name_index)
             },
-            ExprNode::Assignment { dest, expr } if matches!(&**dest, ExprNode::Var { var_name: _, var_name_index: _ }) => {
+            ExprNode::Assignment { assignment_type, dest, expr } if matches!(&**dest, ExprNode::Var { var_name: _, var_name_index: _ }) => {
                 let right_tacky_node = expr.to_tacky(tacky_instructions);
                 let mut var_index = 0;
                 if let ExprNode::Var { var_name: _, var_name_index } = &**dest {
                     var_index = *var_name_index;
                 }
-                tacky_instructions.push(InstructionTackyNode::Copy { src: right_tacky_node, dest: ValTackyNode::Var(var_index) });
+                if let AssignmentOperatorType::AssignmentDefault = assignment_type {
+                    tacky_instructions.push(InstructionTackyNode::Copy { src: right_tacky_node, dest: ValTackyNode::Var(var_index) });
+                } else {
+                    tacky_instructions.push(InstructionTackyNode::Binary { binary_operator: assignment_type.to_tacky(), left_expr: ValTackyNode::Var(var_index), right_expr: right_tacky_node.clone(), dest: ValTackyNode::Var(var_index) });
+                }
                 ValTackyNode::Var(var_index)
             },
             _ => {
                 //Note: for covering ExprNode::Assignment(left_expr, right_expr) where left_expr is not a Var...note that here this case can't happen because of semantic analisys
                 ValTackyNode::Empty
             }
+        }
+    }
+}
+
+impl GenerateTacky<BinaryOperatorTackyNode> for AssignmentOperatorType {
+    fn to_tacky(&self) -> BinaryOperatorTackyNode {
+        match self {
+            AssignmentOperatorType::AssignmentDefault => BinaryOperatorTackyNode::Empty,
+            AssignmentOperatorType::AssignmentAdd => BinaryOperatorTackyNode::Add,
+            AssignmentOperatorType::AssignmentSub => BinaryOperatorTackyNode::Subtract,
+            AssignmentOperatorType::AssignmentMultiply => BinaryOperatorTackyNode::Multiply,
+            AssignmentOperatorType::AssignmentDivide => BinaryOperatorTackyNode::Divide,
+            AssignmentOperatorType::AssignmentReminder => BinaryOperatorTackyNode::Remainder,
+            AssignmentOperatorType::AssignmentBitwiseOr => BinaryOperatorTackyNode::BitwiseOr,
+            AssignmentOperatorType::AssignmentBitwiseAnd => BinaryOperatorTackyNode::BitwiseAnd,
+            AssignmentOperatorType::AssignmentBitwiseXor => BinaryOperatorTackyNode::BitwiseXor,
+            AssignmentOperatorType::AssignmentBitwiseLeftShift => BinaryOperatorTackyNode::BitwiseLeftShift,
+            AssignmentOperatorType::AssignmentBitwiseRightShift => BinaryOperatorTackyNode::BitwiseRightShift
         }
     }
 }
@@ -115,8 +154,10 @@ impl AstDebugPrinter for ExprNode {
                 right_expr.debug_visit();
                 println!(")");
             },
-            ExprNode::Assignment { dest, expr } => {
-                print!("Assignment(dest: ");
+            ExprNode::Assignment { assignment_type, dest, expr } => {
+                print!("Assignment(assignment_type: ");
+                assignment_type.debug_visit();
+                print!("dest: ");
                 dest.debug_visit();
                 print!("expr: ");
                 expr.debug_visit();
@@ -125,6 +166,24 @@ impl AstDebugPrinter for ExprNode {
             ExprNode::Var { var_name, var_name_index} => {
                 println!("Var(var_name: {}, var_name_index: {})", var_name, var_name_index);
             }
+        }
+    }
+}
+
+impl AstDebugPrinter for AssignmentOperatorType {
+    fn debug_visit(&self) {
+        match self {
+            AssignmentOperatorType::AssignmentDefault => println!("AssignmentDefault"),
+            AssignmentOperatorType::AssignmentAdd => println!("AssignmentAdd"),
+            AssignmentOperatorType::AssignmentSub => println!("AssignmentSub"),
+            AssignmentOperatorType::AssignmentMultiply => println!("AssignmentMultiply"),
+            AssignmentOperatorType::AssignmentDivide => println!("AssignmentDivide"),
+            AssignmentOperatorType::AssignmentReminder => println!("AssignmentReminder"),
+            AssignmentOperatorType::AssignmentBitwiseOr => println!("AssignmentBitwiseOr"),
+            AssignmentOperatorType::AssignmentBitwiseAnd => println!("AssignmentBitwiseAnd"),
+            AssignmentOperatorType::AssignmentBitwiseXor => println!("AssignmentBitwiseXor"),
+            AssignmentOperatorType::AssignmentBitwiseLeftShift => println!("AssignmentBitwiseLeftShift"),
+            AssignmentOperatorType::AssignmentBitwiseRightShift => println!("AssignmentBitwiseRightShift"),
         }
     }
 }

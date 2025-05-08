@@ -12,7 +12,7 @@ impl ResolveVarExpr for ExprNode {
                 left_expr.resolve(var_map)?;
                 right_expr.resolve(var_map)
             },
-            ExprNode::Assignment { dest, expr } => {
+            ExprNode::Assignment { assignment_type: _, dest, expr } => {
                 if !matches!(&**dest, ExprNode::Var { .. }) {
                     eprintln!("Error: expected var in lvalue");
                     return Err(CompilerErrors::SemanticError);

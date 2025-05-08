@@ -40,6 +40,16 @@ pub enum Token {
     Or,
     Not,
     Assignment,
+    AssignmentAdd,
+    AssignmentSub,
+    AssignmentMultiply,
+    AssignmentDivide,
+    AssignmentReminder,
+    AssignmentBitwiseOr,
+    AssignmentBitwiseAnd,
+    AssignmentBitwiseXor,
+    AssignmentBitwiseLeftShift,
+    AssignmentBitwiseRightShift,
     //End unary and binary operators
     Eof,
     Init,
@@ -76,6 +86,16 @@ impl PartialEq for Token {
             (Token::Negation, Token::Negation) => true,
             (Token::SingleElem(element0), Token::SingleElem(element1)) => if element0 == element1{ true } else { false },
             (Token::Assignment, Token::Assignment) => true,
+            (Token::AssignmentAdd, Token::AssignmentAdd) => true,
+            (Token::AssignmentSub, Token::AssignmentSub) => true,
+            (Token::AssignmentMultiply, Token::AssignmentMultiply) => true,
+            (Token::AssignmentDivide, Token::AssignmentDivide) => true,
+            (Token::AssignmentReminder, Token::AssignmentReminder) => true,
+            (Token::AssignmentBitwiseOr, Token::AssignmentBitwiseOr) => true,
+            (Token::AssignmentBitwiseAnd, Token::AssignmentBitwiseAnd) => true,
+            (Token::AssignmentBitwiseXor, Token::AssignmentBitwiseXor) => true,
+            (Token::AssignmentBitwiseLeftShift, Token::AssignmentBitwiseLeftShift) => true,
+            (Token::AssignmentBitwiseRightShift, Token::AssignmentBitwiseRightShift) => true,
             (Token::Int, Token::Int) => true,
             (Token::Void, Token::Void) => true,
             (Token::Return, Token::Return) => true,
@@ -183,6 +203,14 @@ impl Lexer {
                 let read_value = self.file.read_exact(&mut buf);
                 if let Ok(_) = read_value {
                     if buf[0] as char == '<' {
+                        let read_value = self.file.read_exact(&mut buf);
+                        if let Ok(_) = read_value {
+                            if buf[0] as char == '=' {
+                                self.current_token = Token::AssignmentBitwiseLeftShift;
+                                return Ok(self.current_token.clone())
+                            }
+                        }
+                        self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
                         //bitwise left shift
                         self.current_token = Token::BitwiseLeftShift;
                         return Ok(self.current_token.clone())
@@ -205,7 +233,14 @@ impl Lexer {
                 let read_value = self.file.read_exact(&mut buf);
                 if let Ok(_) = read_value {
                     if buf[0] as char == '>' {
-                        println!("Bitwise right shift");
+                        let read_value = self.file.read_exact(&mut buf);
+                        if let Ok(_) = read_value {
+                            if buf[0] as char == '=' {
+                                self.current_token = Token::AssignmentBitwiseRightShift;
+                                return Ok(self.current_token.clone())
+                            }
+                        }
+                        self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
                         //bitwise left shift
                         self.current_token = Token::BitwiseRightShift;
                         return Ok(self.current_token.clone())
@@ -286,26 +321,66 @@ impl Lexer {
             }
 
             if c == '+' {
+                let read_value = self.file.read_exact(&mut buf);
+                if let Ok(_) = read_value {
+                    if buf[0] as char == '=' {
+                        self.current_token = Token::AssignmentAdd;
+                        return Ok(self.current_token.clone())
+                    }
+                }
+                self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
                 self.current_token = Token::Add;
                 return Ok(self.current_token.clone())
             }
 
             if c == '-' {
+                let read_value = self.file.read_exact(&mut buf);
+                if let Ok(_) = read_value {
+                    if buf[0] as char == '=' {
+                        self.current_token = Token::AssignmentSub;
+                        return Ok(self.current_token.clone())
+                    }
+                }
+                self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
                 self.current_token = Token::Negation;
                 return Ok(self.current_token.clone())
             }
 
             if c == '*' {
+                let read_value = self.file.read_exact(&mut buf);
+                if let Ok(_) = read_value {
+                    if buf[0] as char == '=' {
+                        self.current_token = Token::AssignmentMultiply;
+                        return Ok(self.current_token.clone())
+                    }
+                }
+                self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
                 self.current_token = Token::Multiply;
                 return Ok(self.current_token.clone())
             }
 
             if c == '/' {
+                let read_value = self.file.read_exact(&mut buf);
+                if let Ok(_) = read_value {
+                    if buf[0] as char == '=' {
+                        self.current_token = Token::AssignmentDivide;
+                        return Ok(self.current_token.clone())
+                    }
+                }
+                self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
                 self.current_token = Token::Divide;
                 return Ok(self.current_token.clone())
             }
 
             if c == '%' {
+                let read_value = self.file.read_exact(&mut buf);
+                if let Ok(_) = read_value {
+                    if buf[0] as char == '=' {
+                        self.current_token = Token::AssignmentReminder;
+                        return Ok(self.current_token.clone())
+                    }
+                }
+                self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
                 self.current_token = Token::Reminder;
                 return Ok(self.current_token.clone())
             }
@@ -316,6 +391,9 @@ impl Lexer {
                     if buf[0] as char == '&' {
                         // Logical and
                         self.current_token = Token::And;
+                        return Ok(self.current_token.clone())
+                    } else if buf[0] as char == '=' {
+                        self.current_token = Token::AssignmentBitwiseAnd;
                         return Ok(self.current_token.clone())
                     } else {
                         // Bitwise and
@@ -333,6 +411,9 @@ impl Lexer {
                         // Logical or
                         self.current_token = Token::Or;
                         return Ok(self.current_token.clone())
+                    } else if buf[0] as char == '=' {
+                        self.current_token = Token::AssignmentBitwiseOr;
+                        return Ok(self.current_token.clone())
                     } else {
                         // Bitwise or
                         self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
@@ -343,6 +424,14 @@ impl Lexer {
             }
 
             if c == '^' {
+                let read_value = self.file.read_exact(&mut buf);
+                if let Ok(_) = read_value {
+                    if buf[0] as char == '=' {
+                        self.current_token = Token::AssignmentBitwiseXor;
+                        return Ok(self.current_token.clone())
+                    }
+                }
+                self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
                 self.current_token = Token::BitwiseXor;
                 return Ok(self.current_token.clone())
             }

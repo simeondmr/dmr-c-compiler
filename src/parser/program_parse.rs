@@ -1,5 +1,6 @@
 use std::path::Path;
 use std::sync::{Mutex, MutexGuard};
+use crate::ast::lang_ast::expr_node::AssignmentOperatorType;
 use crate::ast::lang_ast::program_node::ProgramNode;
 use crate::errors::errors::CompilerErrors;
 use crate::lexer::lexer::{Lexer, LEXER_SINGLETON, Token};
@@ -76,7 +77,34 @@ pub trait PrecedenceClimbingParsing<T> {
             Token::Or => true,
             Token::Not => true,
             Token::Assignment => true,
+            Token::AssignmentAdd => true,
+            Token::AssignmentSub => true,
+            Token::AssignmentMultiply => true,
+            Token::AssignmentDivide => true,
+            Token::AssignmentReminder => true,
+            Token::AssignmentBitwiseOr => true,
+            Token::AssignmentBitwiseAnd => true,
+            Token::AssignmentBitwiseXor => true,
+            Token::AssignmentBitwiseLeftShift => true,
+            Token::AssignmentBitwiseRightShift => true,
             _ => false
+        }
+    }
+    
+    fn is_assignment_operator(operator: &Token) -> Option<AssignmentOperatorType> {
+        match operator {
+            Token::Assignment => Some(AssignmentOperatorType::AssignmentDefault),
+            Token::AssignmentAdd => Some(AssignmentOperatorType::AssignmentAdd),
+            Token::AssignmentSub => Some(AssignmentOperatorType::AssignmentSub),
+            Token::AssignmentMultiply => Some(AssignmentOperatorType::AssignmentMultiply),
+            Token::AssignmentDivide => Some(AssignmentOperatorType::AssignmentDivide),
+            Token::AssignmentReminder => Some(AssignmentOperatorType::AssignmentReminder),
+            Token::AssignmentBitwiseOr => Some(AssignmentOperatorType::AssignmentBitwiseOr),
+            Token::AssignmentBitwiseAnd => Some(AssignmentOperatorType::AssignmentBitwiseAnd),
+            Token::AssignmentBitwiseXor => Some(AssignmentOperatorType::AssignmentBitwiseXor),
+            Token::AssignmentBitwiseLeftShift => Some(AssignmentOperatorType::AssignmentBitwiseLeftShift),
+            Token::AssignmentBitwiseRightShift => Some(AssignmentOperatorType::AssignmentBitwiseRightShift),
+            _ => None
         }
     }
 
@@ -102,6 +130,16 @@ pub trait PrecedenceClimbingParsing<T> {
             Token::And => Ok(10),
             Token::Or => Ok(5),
             Token::Assignment => Ok(1),
+            Token::AssignmentAdd => Ok(1),
+            Token::AssignmentSub => Ok(1),
+            Token::AssignmentMultiply => Ok(1),
+            Token::AssignmentDivide => Ok(1),
+            Token::AssignmentReminder => Ok(1),
+            Token::AssignmentBitwiseOr => Ok(1),
+            Token::AssignmentBitwiseAnd => Ok(1),
+            Token::AssignmentBitwiseXor => Ok(1),
+            Token::AssignmentBitwiseLeftShift => Ok(1),
+            Token::AssignmentBitwiseRightShift => Ok(1),
             _ => Err(CompilerErrors::OperatorPrecedenceError)
         }
     }
