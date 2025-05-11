@@ -31,6 +31,8 @@ pub enum InstructionAsmNode {
         condition_code: ConditionCode,
         dest: OperandAsmNode
     },
+    Inc(OperandAsmNode),
+    Dec(OperandAsmNode),
     Label(u32),
     Ret
 }
@@ -91,6 +93,8 @@ impl AstAsmDebugPrinter for InstructionAsmNode {
             InstructionAsmNode::Cmp(val0, val1) => println!("Cmp {:?} {:?}", val0, val1),
             InstructionAsmNode::Jmp(jmp_label_target) => println!("Jmp .l{}", jmp_label_target),
             InstructionAsmNode::Set { condition_code, dest } => println!("set{:?} {:?}", condition_code, dest),
+            InstructionAsmNode::Inc(operand) => println!("inc {:?}", operand),
+            InstructionAsmNode::Dec(operand) => println!("dec {:?}", operand),
             InstructionAsmNode::Label(index) => println!(".l{}:", index),
             InstructionAsmNode::Ret => println!("Ret")
 

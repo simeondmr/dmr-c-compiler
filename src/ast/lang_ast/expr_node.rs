@@ -24,6 +24,10 @@ pub enum ExprNode {
         dest: Box<ExprNode>, 
         expr: Box<ExprNode>
     },
+    PrePostOperator {
+        pre_post_operator_type: PrePostOperatorType,
+        identifier: Box<ExprNode>
+    },
     Var {
         var_name: String,
         var_name_index: u32
@@ -43,6 +47,22 @@ pub enum AssignmentOperatorType {
     AssignmentBitwiseXor,
     AssignmentBitwiseLeftShift,
     AssignmentBitwiseRightShift,
+}
+#[derive(Debug)]
+pub enum PrePostOperatorType {
+    PreIncrement,
+    PostIncrement,
+    PreDecrement,
+    PostDecrement
+}
+
+impl PrePostOperatorType {
+    fn insert_inc_or_dec_instruction(&self, expr: ValTackyNode, tacky_instructions: &mut Vec<InstructionTackyNode>) {
+        match self {
+            PrePostOperatorType::PreIncrement | PrePostOperatorType::PostIncrement => tacky_instructions.push(InstructionTackyNode::Increment(expr)),
+            PrePostOperatorType::PreDecrement | PrePostOperatorType::PostDecrement => tacky_instructions.push(InstructionTackyNode::Decrement(expr)),
+        }
+    }
 }
 
 impl GenerateTackyInstructions<ValTackyNode> for ExprNode {
@@ -95,6 +115,21 @@ impl GenerateTackyInstructions<ValTackyNode> for ExprNode {
                 let dest = ValTackyNode::Var(TemporaryVar::generate());
                 tacky_instructions.push(InstructionTackyNode::Binary { binary_operator: binary_operator.to_tacky(), left_expr: left_exp_tacky_node, right_expr: right_exp_tacky_node, dest: dest.clone() });
                 dest
+            },
+            ExprNode::PrePostOperator { pre_post_operator_type, identifier} => {
+                let expr_tacky_node = identifier.to_tacky(tacky_instructions);
+                match pre_post_operator_type {
+                    PrePostOperatorType::PreIncrement | PrePostOperatorType::PreDecrement => {
+                        pre_post_operator_type.insert_inc_or_dec_instruction(expr_tacky_node.clone(), tacky_instructions);
+                        expr_tacky_node
+                    },
+                    PrePostOperatorType::PostIncrement | PrePostOperatorType::PostDecrement => {
+                        let var_before_increment = TemporaryVar::generate();
+                        tacky_instructions.push(InstructionTackyNode::Copy { src: expr_tacky_node.clone(), dest: ValTackyNode::Var(var_before_increment) });
+                        pre_post_operator_type.insert_inc_or_dec_instruction(expr_tacky_node.clone(), tacky_instructions);
+                        ValTackyNode::Var(var_before_increment)
+                    },
+                }
             },
             ExprNode::Var { var_name: _, var_name_index} => {
                 // Note: after the semantic analisys the var_name_index is fixed
@@ -161,6 +196,11 @@ impl AstDebugPrinter for ExprNode {
                 dest.debug_visit();
                 print!("expr: ");
                 expr.debug_visit();
+                println!(")");
+            },
+            ExprNode::PrePostOperator { pre_post_operator_type, identifier } => {
+                println!("PrePostOperator(pre_post_operator_type: {:?}", pre_post_operator_type);
+                identifier.debug_visit();
                 println!(")");
             },
             ExprNode::Var { var_name, var_name_index} => {

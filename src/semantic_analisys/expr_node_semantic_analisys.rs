@@ -20,6 +20,7 @@ impl ResolveVarExpr for ExprNode {
                 dest.resolve(var_map)?;
                 expr.resolve(var_map)
             },
+            ExprNode::PrePostOperator { pre_post_operator_type: _, identifier} => identifier.resolve(var_map),
             ExprNode::Var { var_name, var_name_index: _} => {
                 if let Some(var_name_index) = var_map.get(var_name) {
                     *self = ExprNode::Var { var_name: var_name.to_string(), var_name_index: *var_name_index };

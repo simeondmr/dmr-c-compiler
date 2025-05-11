@@ -42,6 +42,14 @@ impl AsmReplacingPseudoregisters for InstructionAsmNode {
                 let dest = InstructionAsmNode::replace_pseudoregister(dest, stack_alloc_table);
                 *self = InstructionAsmNode::Set { condition_code: condition_code.clone(), dest };
             },
+            InstructionAsmNode::Inc(operand) | InstructionAsmNode::Dec(operand)  => {
+                let operand_replaced = InstructionAsmNode::replace_pseudoregister(operand, stack_alloc_table);
+                if let InstructionAsmNode::Inc(_) = self {
+                    *self = InstructionAsmNode::Inc(operand_replaced);
+                } else {
+                    *self = InstructionAsmNode::Dec(operand_replaced);
+                }
+            },
             _ => return 0
         }
         0

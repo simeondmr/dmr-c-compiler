@@ -28,6 +28,14 @@ pub trait GrammarProductionParsing<T> {
     fn lexer() -> &'static Mutex<Lexer> {
         LEXER_SINGLETON.get().unwrap()
     }
+
+    fn is_pre_post_operator(operator: &Token) -> bool {
+        match operator {
+            Token::Increment => true,
+            Token::Decrement => true,
+            _ => false
+        }
+    }
 }
 
 #[allow(dead_code)]

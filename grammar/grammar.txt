@@ -10,6 +10,8 @@ Grammar:
 <exp> ::= <factor> | <exp> binop <exp>
 <factor> ::= <int>
            | <unop> <exp>
+           | <pre-post-op> <identifier>
+           | <identifier> <pre-post-op>
            | "(" <exp> ")"
            | <identifier>
 <unop> ::= "-" | "~" | "!"
@@ -42,5 +44,7 @@ Grammar:
           | "^="
           | "<<="
           | ">>="
+<pre-post-op> ::= "++"
+          | "--"
 <identifier> ::= ? An identifier token ?
 <int> ::= ? A constant token ?

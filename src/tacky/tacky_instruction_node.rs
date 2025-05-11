@@ -29,6 +29,8 @@ pub enum InstructionTackyNode {
         condition: ValTackyNode,
         jmp_label_target: u32
     },
+    Increment(ValTackyNode),
+    Decrement(ValTackyNode),
     Copy {
         src: ValTackyNode,
         dest: ValTackyNode
@@ -82,6 +84,8 @@ impl GenerateAsmInstruction<()> for InstructionTackyNode {
                 asm_instructions.push_back(InstructionAsmNode::Cmp(OperandAsmNode::Imm(0), condition.to_asm()));
                 asm_instructions.push_back(InstructionAsmNode::JmpCC { condition_code: ConditionCode::Ne, jmp_label_target: *jmp_label_target });
             },
+            InstructionTackyNode::Increment(expr) => asm_instructions.push_back(InstructionAsmNode::Inc(expr.to_asm())),
+            InstructionTackyNode::Decrement(expr) => asm_instructions.push_back(InstructionAsmNode::Dec(expr.to_asm())),
             InstructionTackyNode::Copy { src, dest} => asm_instructions.push_back(InstructionAsmNode::Mov { src: src.to_asm(), dest: dest.to_asm() }),
             InstructionTackyNode::Label(index) => asm_instructions.push_back(InstructionAsmNode::Label(*index))
         }
@@ -132,7 +136,17 @@ impl TackyVisitDebug for InstructionTackyNode {
                 print!("dest: ");
                 dest.visit_debug();
                 println!(")");
-            }
+            },
+            InstructionTackyNode::Increment(expr) => {
+                println!("Increment(");
+                expr.visit_debug();
+                println!(")");
+            },
+            InstructionTackyNode::Decrement(expr) => {
+                println!("Decrement(");
+                expr.visit_debug();
+                println!(")");
+            },
             InstructionTackyNode::Label(value) => {
                 println!("l{}:", value);
             }

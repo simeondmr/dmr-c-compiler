@@ -51,6 +51,16 @@ impl Codegen for InstructionAsmNode {
                 dest.codegen(output_file)?;
                 Ok(output_file.write_all("\n".as_bytes())?)
             },
+            InstructionAsmNode::Inc(operand) => {
+                output_file.write_all("\tincl ".as_bytes())?;
+                operand.codegen(output_file)?;
+                Ok(output_file.write_all("\n".as_bytes())?)
+            },
+            InstructionAsmNode::Dec(operand) => {
+                output_file.write_all("\tdecl ".as_bytes())?;
+                operand.codegen(output_file)?;
+                Ok(output_file.write_all("\n".as_bytes())?)
+            },
             InstructionAsmNode::Label(index) => Ok(output_file.write_all(format!(".l{}:\n", index).as_bytes())?),
             InstructionAsmNode::Ret => {
                 output_file.write_all("\tmovq %rbp, %rsp\n".as_bytes())?;

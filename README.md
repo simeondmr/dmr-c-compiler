@@ -13,7 +13,7 @@ To generate the assembly of an example file, run the compiler with the following
 
 ## Note
 
-Currently only expressions with unary and binary operators are implemented.\
+Currently only int variable, expression and return statement are supported.
 As you can see from the generated assembly, the code actually is not optimized but in the future I will implement this pass.
 
 ## Important

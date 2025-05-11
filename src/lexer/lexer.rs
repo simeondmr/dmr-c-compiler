@@ -50,6 +50,8 @@ pub enum Token {
     AssignmentBitwiseXor,
     AssignmentBitwiseLeftShift,
     AssignmentBitwiseRightShift,
+    Increment,
+    Decrement,
     //End unary and binary operators
     Eof,
     Init,
@@ -96,6 +98,8 @@ impl PartialEq for Token {
             (Token::AssignmentBitwiseXor, Token::AssignmentBitwiseXor) => true,
             (Token::AssignmentBitwiseLeftShift, Token::AssignmentBitwiseLeftShift) => true,
             (Token::AssignmentBitwiseRightShift, Token::AssignmentBitwiseRightShift) => true,
+            (Token::Increment, Token::Increment) => true,
+            (Token::Decrement, Token::Decrement) => true,
             (Token::Int, Token::Int) => true,
             (Token::Void, Token::Void) => true,
             (Token::Return, Token::Return) => true,
@@ -323,6 +327,10 @@ impl Lexer {
             if c == '+' {
                 let read_value = self.file.read_exact(&mut buf);
                 if let Ok(_) = read_value {
+                    if buf[0] as char == '+' {
+                        self.current_token = Token::Increment;
+                        return Ok(self.current_token.clone())
+                    }   
                     if buf[0] as char == '=' {
                         self.current_token = Token::AssignmentAdd;
                         return Ok(self.current_token.clone())
@@ -336,6 +344,10 @@ impl Lexer {
             if c == '-' {
                 let read_value = self.file.read_exact(&mut buf);
                 if let Ok(_) = read_value {
+                    if buf[0] as char == '-' {
+                        self.current_token = Token::Decrement;
+                        return Ok(self.current_token.clone())
+                    }
                     if buf[0] as char == '=' {
                         self.current_token = Token::AssignmentSub;
                         return Ok(self.current_token.clone())
