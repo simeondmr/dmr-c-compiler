@@ -29,8 +29,7 @@ impl GrammarProductionParsing<ExprNode> for FactorParse {
             },
             Token::BitwiseComplement | Token::Negation | Token::Not => {
                 drop(lexer);
-                let expr = ExprParse::new();
-                Ok(ExprNode::Unary { unary_operator: self.unop_parse.parse()?, expr: Box::new(expr.parse(0)?) })
+                Ok(ExprNode::Unary { unary_operator: self.unop_parse.parse()?, expr: Box::new(self.parse()?) })
             },
             Token::RoundBracketOpen => {
                 lexer.next_token()?;

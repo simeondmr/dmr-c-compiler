@@ -37,6 +37,7 @@ impl GrammarProductionParsing<BinaryOperatorNode> for BinopParse {
             Token::And => Ok(BinaryOperatorNode::And),
             Token::Or => Ok(BinaryOperatorNode::Or),
             Token::Not => Ok(BinaryOperatorNode::Not),
+            Token::Comma => Ok(BinaryOperatorNode::Comma),
             _ => {
                 eprintln!("Error at line {}: unexpected {:?} token", lexer.current_line(), current_token);
                 Err(CompilerErrors::SyntaxError)

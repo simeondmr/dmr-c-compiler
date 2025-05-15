@@ -92,6 +92,13 @@ impl GenerateTackyInstructions<ValTackyNode> for ExprNode {
                 tacky_instructions.push(InstructionTackyNode::Label(end_label));
                 result
             },
+            ExprNode::Binary {  binary_operator, left_expr, right_expr} if matches!(binary_operator, BinaryOperatorNode::Comma) => {
+                let _ = left_expr.to_tacky(tacky_instructions);
+                let right_expr_tacky_node = right_expr.to_tacky(tacky_instructions);
+                let result = ValTackyNode::Var(TemporaryVar::generate());
+                tacky_instructions.push(InstructionTackyNode::Copy { src: right_expr_tacky_node, dest: result.clone() });
+                result
+            },
             ExprNode::Binary { binary_operator , left_expr, right_expr}  if matches!(binary_operator, BinaryOperatorNode::Or) => {
                 let left_exp_tacky_node = left_expr.to_tacky(tacky_instructions);
                 LABEL_GEN_SINGLETON.get_or_init(|| Mutex::new(LabelGen::new()));

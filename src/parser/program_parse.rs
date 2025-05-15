@@ -95,6 +95,7 @@ pub trait PrecedenceClimbingParsing<T> {
             Token::AssignmentBitwiseXor => true,
             Token::AssignmentBitwiseLeftShift => true,
             Token::AssignmentBitwiseRightShift => true,
+            Token::Comma => true,
             _ => false
         }
     }
@@ -118,6 +119,7 @@ pub trait PrecedenceClimbingParsing<T> {
 
     fn operator_precedence(operator: &Token) -> Result<u8, CompilerErrors> {
         match operator {
+            Token::Comma => Ok(1),
             Token::BitwiseComplement => Ok(60),
             Token::Negation => Ok(50),
             Token::Add => Ok(50),

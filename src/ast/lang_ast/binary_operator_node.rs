@@ -23,6 +23,7 @@ pub enum BinaryOperatorNode {
     Not,
     And,
     Or,
+    Comma
 }
 
 impl GenerateTacky<BinaryOperatorTackyNode> for BinaryOperatorNode {

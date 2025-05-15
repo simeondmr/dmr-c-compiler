@@ -44,7 +44,8 @@ Grammar:
           | "^="
           | "<<="
           | ">>="
+          | ","
 <pre-post-op> ::= "++"
-          | "--"
+				| "--"
 <identifier> ::= ? An identifier token ?
 <int> ::= ? A constant token ?

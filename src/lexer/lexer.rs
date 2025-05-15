@@ -52,6 +52,7 @@ pub enum Token {
     AssignmentBitwiseRightShift,
     Increment,
     Decrement,
+    Comma,
     //End unary and binary operators
     Eof,
     Init,
@@ -100,6 +101,7 @@ impl PartialEq for Token {
             (Token::AssignmentBitwiseRightShift, Token::AssignmentBitwiseRightShift) => true,
             (Token::Increment, Token::Increment) => true,
             (Token::Decrement, Token::Decrement) => true,
+            (Token::Comma, Token::Comma) => true,
             (Token::Int, Token::Int) => true,
             (Token::Void, Token::Void) => true,
             (Token::Return, Token::Return) => true,
@@ -445,6 +447,11 @@ impl Lexer {
                 }
                 self.file.seek(SeekFrom::Current(-1)).expect("Failed to seek back");
                 self.current_token = Token::BitwiseXor;
+                return Ok(self.current_token.clone())
+            }
+
+            if c == ',' {
+                self.current_token = Token::Comma;
                 return Ok(self.current_token.clone())
             }
             
