@@ -53,6 +53,8 @@ pub enum Token {
     Increment,
     Decrement,
     Comma,
+    QuestionMark,
+    Colon,
     //End unary and binary operators
     Eof,
     Init,
@@ -104,6 +106,8 @@ impl PartialEq for Token {
             (Token::Increment, Token::Increment) => true,
             (Token::Decrement, Token::Decrement) => true,
             (Token::Comma, Token::Comma) => true,
+            (Token::QuestionMark, Token::QuestionMark) => true,
+            (Token::Colon, Token::Colon) => true,
             (Token::Int, Token::Int) => true,
             (Token::Void, Token::Void) => true,
             (Token::Return, Token::Return) => true,
@@ -457,6 +461,16 @@ impl Lexer {
 
             if c == ',' {
                 self.current_token = Token::Comma;
+                return Ok(self.current_token.clone())
+            }
+
+            if c == '?' {
+                self.current_token = Token::QuestionMark;
+                return Ok(self.current_token.clone())
+            }
+
+            if c == ':' {
+                self.current_token = Token::Colon;
                 return Ok(self.current_token.clone())
             }
             

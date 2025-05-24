@@ -96,6 +96,7 @@ pub trait PrecedenceClimbingParsing<T> {
             Token::AssignmentBitwiseLeftShift => true,
             Token::AssignmentBitwiseRightShift => true,
             Token::Comma => true,
+            Token::QuestionMark => true,
             _ => false
         }
     }
@@ -139,6 +140,7 @@ pub trait PrecedenceClimbingParsing<T> {
             Token::GreaterThanOrEqual => Ok(35),
             Token::And => Ok(10),
             Token::Or => Ok(5),
+            Token::QuestionMark => Ok(3),
             Token::Assignment => Ok(1),
             Token::AssignmentAdd => Ok(1),
             Token::AssignmentSub => Ok(1),

@@ -1,5 +1,6 @@
 use crate::ast::lang_ast::expr_node::ExprNode;
 use crate::errors::errors::CompilerErrors;
+use crate::lexer::lexer::Token;
 use crate::parser::binop_parse::BinopParse;
 use crate::parser::factor_parse::FactorParse;
 use crate::parser::program_parse::{GrammarProductionParsing, PrecedenceClimbingParsing};
@@ -28,6 +29,12 @@ impl PrecedenceClimbingParsing<ExprNode> for ExprParse {
                 let operator_precedence = ExprParse::operator_precedence(&current_token)?;
                 let right_expr = self.parse(operator_precedence);
                 left_expr = Ok(ExprNode::Assignment { assignment_type: assignment_operator_type, dest: Box::new(left_expr?), expr: Box::new(right_expr?) }) 
+            } else if let Token::QuestionMark = current_token {
+                ExprParse::lexer_lock().next_token()?;
+                let true_expr =  Box::new(self.parse(0)?);
+                Self::match_token(&Token::Colon, &mut Self::lexer_lock())?;
+                let false_expr = Box::new(self.parse(ExprParse::operator_precedence(&current_token)?)?);
+                return Ok(ExprNode::Conditional { condition: Box::new(left_expr?), true_expr, false_expr });
             } else {
                 let operator_precedence = ExprParse::operator_precedence(&current_token)?;
                 let binary_operator = self.binop_parse.parse();

@@ -28,6 +28,11 @@ pub enum ExprNode {
         pre_post_operator_type: PrePostOperatorType,
         identifier: Box<ExprNode>
     },
+    Conditional {
+        condition: Box<ExprNode>,
+        true_expr: Box<ExprNode>,
+        false_expr: Box<ExprNode>
+    },
     Var {
         var_name: String,
         var_name_index: u32
@@ -138,6 +143,22 @@ impl GenerateTackyInstructions<ValTackyNode> for ExprNode {
                     },
                 }
             },
+            ExprNode::Conditional { condition, true_expr, false_expr } => {
+                LABEL_GEN_SINGLETON.get_or_init(|| Mutex::new(LabelGen::new()));
+                let false_expr_label = LABEL_GEN_SINGLETON.get().unwrap().lock().unwrap().gen();
+                let end_label = LABEL_GEN_SINGLETON.get().unwrap().lock().unwrap().gen();
+                let result = TemporaryVar::generate();
+                let condition_tacky_node = condition.to_tacky(tacky_instructions);
+                let true_expr_tacky_node = true_expr.to_tacky(tacky_instructions);
+                let false_expr_tacky_node = false_expr.to_tacky(tacky_instructions);
+                tacky_instructions.push(InstructionTackyNode::JmpIfZero { condition: condition_tacky_node, jmp_label_target: false_expr_label });
+                tacky_instructions.push(InstructionTackyNode::Copy { src: true_expr_tacky_node, dest: ValTackyNode::Var(result) });
+                tacky_instructions.push(InstructionTackyNode::Jmp(end_label));
+                tacky_instructions.push(InstructionTackyNode::Label(false_expr_label));
+                tacky_instructions.push(InstructionTackyNode::Copy { src: false_expr_tacky_node, dest: ValTackyNode::Var(result) });
+                tacky_instructions.push(InstructionTackyNode::Label(end_label));
+                ValTackyNode::Var(result)
+            },
             ExprNode::Var { var_name: _, var_name_index} => {
                 // Note: after the semantic analisys the var_name_index is fixed
                 ValTackyNode::Var(*var_name_index)
@@ -210,6 +231,15 @@ impl AstDebugPrinter for ExprNode {
                 identifier.debug_visit();
                 println!(")");
             },
+            ExprNode::Conditional { condition, true_expr, false_expr } => {
+                println!("Conditional(condition: ");
+                condition.debug_visit();
+                print!("true_expr:");
+                true_expr.debug_visit();
+                print!("false_expr:");
+                false_expr.debug_visit();
+                println!(")");
+            }
             ExprNode::Var { var_name, var_name_index} => {
                 println!("Var(var_name: {}, var_name_index: {})", var_name, var_name_index);
             }
