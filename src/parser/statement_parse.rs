@@ -21,13 +21,29 @@ impl GrammarProductionParsing<StatementNode> for Statement {
         let mut lexer = Self::lexer_lock();
         let current_token = lexer.current_token();
         match current_token {
+           Token::If => {
+               lexer.next_token()?;
+               Self::match_token(&Token::RoundBracketOpen, &mut lexer)?;
+               drop(lexer);
+               let expr_node  = self.expr_parse.parse(0)?;
+               Self::match_token(&Token::RoundBracketClose, &mut Self::lexer_lock())?;
+               let stmt_node = self.parse()?;
+               let mut lexer = Self::lexer_lock();
+               let mut else_node = None;
+               if let Token::Else = lexer.current_token() {
+                   lexer.next_token()?;
+                   drop(lexer);
+                   else_node = Some(Box::new(self.parse()?));
+               }
+               Ok(StatementNode::IfStmt { condition: expr_node, stmt: Box::new(stmt_node), else_stmt: else_node })
+           },
             Token::Return => {
                 lexer.next_token()?;
                 drop(lexer);
-                let expr_ast  = self.expr_parse.parse(0)?;
+                let expr_node  = self.expr_parse.parse(0)?;
                 let mut lexer = Self::lexer_lock();
                 Self::match_token(&Token::Semicolon, &mut lexer)?;
-                Ok(StatementNode::ReturnStmt(expr_ast))
+                Ok(StatementNode::ReturnStmt(expr_node))
             },
             Token::Semicolon => {
                 lexer.next_token()?;

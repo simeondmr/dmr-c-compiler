@@ -3,11 +3,15 @@ Grammar:
 <program> ::= <function>
 <function> ::= "int" <identifier> "(" "void" ")" "{" { <block-item> } "}"
 <block-item> ::= <declaration> | <statement>
-<statement> ::= "return" <exp> ";"
+<statement> ::= "if" "(" expr ")" <statement> [ "else" <statement> ]
+              | "goto" <identifier> ";"
+              |"return" <exp> ";"
               | <expr> ";"
               | ";"
 <declaration> ::= "int" <identifier> [ "=" <expr> ] ";"
-<exp> ::= <factor> | <exp> binop <exp>
+<exp> ::= <factor>
+        | <exp> binop <exp>
+        | <exp> "?" <exp> ":" <exp>
 <factor> ::= <int>
            | <unop> <exp>
            | <pre-post-op> <identifier>

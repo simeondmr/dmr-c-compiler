@@ -40,7 +40,7 @@ impl Codegen for InstructionAsmNode {
                 operand1.codegen(output_file)?;
                 Ok(output_file.write_all("\n".as_bytes())?)
             },
-            InstructionAsmNode::Jmp(jmp_label_target) => Ok(output_file.write_all(format!("\tjmp l{}\n", jmp_label_target).as_bytes())?),
+            InstructionAsmNode::Jmp(jmp_label_target) => Ok(output_file.write_all(format!("\tjmp .l{}\n", jmp_label_target).as_bytes())?),
             InstructionAsmNode::JmpCC { condition_code, jmp_label_target } => Ok(output_file.write_all(format!("\tj{} .l{}\n", condition_code.code(), jmp_label_target).as_bytes())?),
             InstructionAsmNode::Set { condition_code, dest } => {
                 /*

@@ -59,9 +59,11 @@ pub enum Token {
     //Start keyword
     Int,
     Void,
+    If,
+    Else,
+    Goto,
     Return,
     //end keyword
-
     Error
 }
 
@@ -127,6 +129,9 @@ impl Lexer {
             keywords: HashMap::from([
                 ("int".to_string(), Token::Int),
                 ("void".to_string(), Token::Void),
+                ("if".to_string(), Token::If),
+                ("else".to_string(), Token::Else),
+                ("goto".to_string(), Token::Goto),
                 ("return".to_string(), Token::Return),
             ])
         }
