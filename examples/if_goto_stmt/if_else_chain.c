@@ -1,5 +1,5 @@
 int main(void) {
-    int a;
+    int a = 0;
     if (a == 1)
         a = 29;
     else if(a > 0 || a == 0)
