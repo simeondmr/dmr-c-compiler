@@ -5,7 +5,8 @@ Grammar:
 <block-item> ::= <declaration> | <statement>
 <statement> ::= "if" "(" expr ")" <statement> [ "else" <statement> ]
               | "goto" <identifier> ";"
-              |"return" <exp> ";"
+              | <identifier> ":" <statement>
+              | "return" <exp> ";"
               | <expr> ";"
               | ";"
 <declaration> ::= "int" <identifier> [ "=" <expr> ] ";"

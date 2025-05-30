@@ -6,3 +6,4 @@ pub mod declaration_node_semantic_analisys;
 pub mod expr_node_semantic_analisys;
 pub mod statement_node_semantic_analisys;
 pub mod semantic_analisys_core;
+pub mod check_goto_label_trait;

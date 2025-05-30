@@ -12,6 +12,15 @@ pub enum StatementNode {
         else_stmt: Option<Box<StatementNode>>
     },
     ReturnStmt(ExprNode),
+    Goto {
+        label_name: String,
+        label_name_index: u32
+    },
+    LabelStmt {
+        label_name: String,
+        label_name_index: u32,
+        stmt: Box<StatementNode>,
+    },
     Expr(ExprNode),
     EmptyStmt,
 }
@@ -38,6 +47,11 @@ impl GenerateTackyInstructions<()> for StatementNode {
             StatementNode::ReturnStmt(expr) => {
                 let expr_tacky = expr.to_tacky(tacky_instructions);
                 tacky_instructions.push(InstructionTackyNode::Return(expr_tacky))
+            },
+            StatementNode::Goto { label_name: _, label_name_index } => tacky_instructions.push(InstructionTackyNode::Jmp(*label_name_index)),
+            StatementNode::LabelStmt { label_name: _, stmt, label_name_index } => {
+                tacky_instructions.push(InstructionTackyNode::Label(*label_name_index));
+                stmt.to_tacky(tacky_instructions)
             },
             StatementNode::Expr(expr) =>  {
                 expr.to_tacky(tacky_instructions);
@@ -66,7 +80,14 @@ impl AstDebugPrinter for StatementNode {
                 println!("Return(");
                 expr.debug_visit();
                 println!(")");
-            }
+            },
+            StatementNode::Goto { label_name, label_name_index } => println!("Goto(label_name: {}, label_name_index: {})", label_name, label_name_index),
+            StatementNode::LabelStmt { label_name, label_name_index, stmt} => {
+                println!("Label(label_name: {}, label_name_index: {}", label_name, label_name_index);
+                println!("stmt: ");
+                stmt.debug_visit();
+                println!(")");
+            },
             StatementNode::Expr(expr) => expr.debug_visit(),
             StatementNode::EmptyStmt => println!("EmptyStmt")
         }
