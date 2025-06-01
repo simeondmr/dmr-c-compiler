@@ -7,3 +7,5 @@ pub mod expr_node_semantic_analisys;
 pub mod statement_node_semantic_analisys;
 pub mod semantic_analisys_core;
 pub mod check_goto_label_trait;
+pub mod block_node_semantic_analisys;
+pub mod symbol_table;

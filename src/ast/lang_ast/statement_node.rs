@@ -1,4 +1,5 @@
 use std::sync::Mutex;
+use crate::ast::lang_ast::block_node::BlockNode;
 use crate::ast::lang_ast::expr_node::ExprNode;
 use crate::ast::lang_ast::lang_ast_visit_trait::{AstDebugPrinter, GenerateTackyInstructions};
 use crate::tacky::label_gen::{LabelGen, LABEL_GEN_SINGLETON};
@@ -21,6 +22,7 @@ pub enum StatementNode {
         label_name_index: u32,
         stmt: Box<StatementNode>,
     },
+    Compound(BlockNode),
     Expr(ExprNode),
     EmptyStmt,
 }
@@ -53,6 +55,7 @@ impl GenerateTackyInstructions<()> for StatementNode {
                 tacky_instructions.push(InstructionTackyNode::Label(*label_name_index));
                 stmt.to_tacky(tacky_instructions)
             },
+            StatementNode::Compound(block_node) => block_node.to_tacky(tacky_instructions),
             StatementNode::Expr(expr) =>  {
                 expr.to_tacky(tacky_instructions);
             },
@@ -86,6 +89,11 @@ impl AstDebugPrinter for StatementNode {
                 println!("Label(label_name: {}, label_name_index: {}", label_name, label_name_index);
                 println!("stmt: ");
                 stmt.debug_visit();
+                println!(")");
+            },
+            StatementNode::Compound(block_node) => {
+                println!("Compound(");
+                block_node.debug_visit();
                 println!(")");
             },
             StatementNode::Expr(expr) => expr.debug_visit(),

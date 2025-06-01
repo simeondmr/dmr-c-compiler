@@ -4,20 +4,21 @@ use crate::ast::lang_ast::statement_node::StatementNode;
 use crate::errors::errors::CompilerErrors;
 use crate::semantic_analisys::check_goto_label_trait::CheckGotoLabel;
 use crate::semantic_analisys::resolve_var_expr_trait::ResolveVarExprLabel;
-use crate::tacky::label_gen::{ LabelGen, LABEL_GEN_SINGLETON };
+use crate::semantic_analisys::symbol_table::SymbolTable;
+use crate::tacky::label_gen::{LabelGen, LABEL_GEN_SINGLETON };
 
 impl ResolveVarExprLabel for StatementNode {
-    fn resolve(&mut self, var_map: &mut HashMap<String, u32>, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
+    fn resolve(&mut self, symbol_table: &mut SymbolTable, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
         match self {
             StatementNode::IfStmt { condition, stmt, else_stmt } =>  {
-                condition.resolve(var_map, label_map)?;
-                stmt.resolve(var_map, label_map)?;
+                condition.resolve(symbol_table, label_map)?;
+                stmt.resolve(symbol_table, label_map)?;
                 if let Some(else_stmt_unwrapped) = else_stmt {
-                    else_stmt_unwrapped.resolve(var_map, label_map)?;
+                    else_stmt_unwrapped.resolve(symbol_table, label_map)?;
                 }
                 Ok(())
             },
-            StatementNode::ReturnStmt(expr) => expr.resolve(var_map, label_map),
+            StatementNode::ReturnStmt(expr) => expr.resolve(symbol_table, label_map),
             StatementNode::Goto { label_name: _, label_name_index: _ } => {
                 /* Nothing to do because at this point the label may not have been declared yet */
                 Ok(())
@@ -28,9 +29,10 @@ impl ResolveVarExprLabel for StatementNode {
                 let new_label_index = labelgen_singleton.gen();
                 label_map.insert(label_name.to_string(), new_label_index);
                 *label_name_index = new_label_index;
-                stmt.resolve(var_map, label_map)
+                stmt.resolve(symbol_table, label_map)
             },
-            StatementNode::Expr(expr) => expr.resolve(var_map, label_map),
+            StatementNode::Compound(block_node) => block_node.resolve(symbol_table, label_map),
+            StatementNode::Expr(expr) => expr.resolve(symbol_table, label_map),
             StatementNode::EmptyStmt => {
                 // Note: nothing to do
                 Ok(())
@@ -66,6 +68,7 @@ impl CheckGotoLabel for StatementNode {
                 // Nothing to do
                 Ok(())
             },
+            StatementNode::Compound(block_node) => block_node.check_goto_label(label_map),
             StatementNode::EmptyStmt => {
                 // Note: nothing to do
                 Ok(())

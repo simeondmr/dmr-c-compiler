@@ -1,6 +1,7 @@
 use crate::ast::lang_ast::statement_node::StatementNode;
 use crate::errors::errors::CompilerErrors;
 use crate::lexer::lexer::Token;
+use crate::parser::block_parse::BlockParse;
 use crate::parser::expr_parse::ExprParse;
 use crate::parser::program_parse::{GrammarProductionParsing, PrecedenceClimbingParsing};
 
@@ -55,6 +56,10 @@ impl GrammarProductionParsing<StatementNode> for Statement {
                     eprintln!("Syntax error: expected literal in goto statement");
                     Err(CompilerErrors::SyntaxError)
                 }
+            },
+            Token::CurlyBracketOpen => {
+                drop(lexer);
+                Ok(StatementNode::Compound(BlockParse::new().parse()?))
             },
             Token::Semicolon => {
                 lexer.next_token()?;

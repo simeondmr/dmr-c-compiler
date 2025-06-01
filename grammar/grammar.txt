@@ -1,13 +1,15 @@
 Grammar:
 
 <program> ::= <function>
-<function> ::= "int" <identifier> "(" "void" ")" "{" { <block-item> } "}"
+<function> ::= "int" <identifier> "(" "void" ")" <block>
 <block-item> ::= <declaration> | <statement>
+<block> ::= "{" { <block-item> } "}"
 <statement> ::= "if" "(" expr ")" <statement> [ "else" <statement> ]
               | "goto" <identifier> ";"
               | <identifier> ":" <statement>
               | "return" <exp> ";"
               | <expr> ";"
+              | <block>
               | ";"
 <declaration> ::= "int" <identifier> [ "=" <expr> ] ";"
 <exp> ::= <factor>
