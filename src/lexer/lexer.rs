@@ -63,7 +63,15 @@ pub enum Token {
     Void,
     If,
     Else,
+    Do,
+    While,
+    For,
+    Switch,
+    Case,
+    Default,
     Goto,
+    Break,
+    Continue,
     Return,
     //end keyword
     Error
@@ -74,7 +82,6 @@ impl Token {
         if let Token::Literal( val) = self {
             return Some(val.clone())
         }
-
         None
     }
 }
@@ -110,6 +117,17 @@ impl PartialEq for Token {
             (Token::Colon, Token::Colon) => true,
             (Token::Int, Token::Int) => true,
             (Token::Void, Token::Void) => true,
+            (Token::If, Token::If) => true,
+            (Token::Else, Token::Else) => true,
+            (Token::Do, Token::Do) => true,
+            (Token::While, Token::While) => true,
+            (Token::For, Token::For) => true,
+            (Token::Switch, Token::Switch) => true,
+            (Token::Case, Token::Case) => true,
+            (Token::Default, Token::Default) => true,
+            (Token::Goto, Token::Goto) => true,
+            (Token::Break, Token::Break) => true,
+            (Token::Continue, Token::Continue) => true,
             (Token::Return, Token::Return) => true,
             (Token::Eof, Token::Eof) => true,
             _ => false
@@ -137,6 +155,14 @@ impl Lexer {
                 ("if".to_string(), Token::If),
                 ("else".to_string(), Token::Else),
                 ("goto".to_string(), Token::Goto),
+                ("break".to_string(), Token::Break),
+                ("continue".to_string(), Token::Continue),
+                ("do".to_string(), Token::Do),
+                ("while".to_string(), Token::While),
+                ("for".to_string(), Token::For),
+                ("switch".to_string(), Token::Switch),
+                ("case".to_string(), Token::Case),
+                ("default".to_string(), Token::Default),
                 ("return".to_string(), Token::Return),
             ]),
             lookahead_tokens: VecDeque::new()

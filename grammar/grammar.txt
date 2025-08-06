@@ -4,7 +4,16 @@ Grammar:
 <function> ::= "int" <identifier> "(" "void" ")" <block>
 <block-item> ::= <declaration> | <statement>
 <block> ::= "{" { <block-item> } "}"
-<statement> ::= "if" "(" expr ")" <statement> [ "else" <statement> ]
+<for-init> ::= <declaration> | [ <expr> ] ";"
+<statement> ::= "if" "(" <expr> ")" <statement> [ "else" <statement> ]
+              | "while" "(" <expr>  ")" <statement>
+              | "do" <statement> "while" "(" <expr> ")" ";"
+              | "for" "(" <for-init> [ <expr> ] ";" [ <expr> ] ")" <stmt>
+              | "switch" "(" <expr> ")"
+              | "case" <int> ":"
+              | "default" ":"
+              | "break" ";"
+              | "continue" ";"
               | "goto" <identifier> ";"
               | <identifier> ":" <statement>
               | "return" <exp> ";"

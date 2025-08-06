@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
-use crate::ast::lang_ast::statement_node::StatementNode;
+use crate::ast::lang_ast::statement_node::{ForInit, LoopLabels, StatementNode};
 use crate::errors::errors::CompilerErrors;
-use crate::semantic_analisys::check_goto_label_trait::CheckGotoLabel;
+use crate::semantic_analisys::check_goto_label_break_continue_trait::{CheckGotoLabelBreakContinue};
 use crate::semantic_analisys::resolve_var_expr_trait::ResolveVarExprLabel;
 use crate::semantic_analisys::symbol_table::SymbolTable;
-use crate::tacky::label_gen::{LabelGen, LABEL_GEN_SINGLETON };
+use crate::tacky::label_gen::{ LabelGen, LABEL_GEN_SINGLETON };
 
 impl ResolveVarExprLabel for StatementNode {
     fn resolve(&mut self, symbol_table: &mut SymbolTable, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
@@ -18,9 +18,36 @@ impl ResolveVarExprLabel for StatementNode {
                 }
                 Ok(())
             },
+            StatementNode::WhileStmt { condition, stmt, loop_labels: _ } => {
+                condition.resolve(symbol_table, label_map)?;
+                Ok(stmt.resolve(symbol_table, label_map)?)
+            },
+            StatementNode::DoWhileStmt { condition, stmt, loop_labels: _} => {
+                condition.resolve(symbol_table, label_map)?;
+                Ok(stmt.resolve(symbol_table, label_map)?)
+            },
+            StatementNode::ForStmt { init , condition, post_expr: _, stmt, break_label: _, continue_label: _ } => {
+                init.resolve(symbol_table, label_map)?;
+                condition.resolve(symbol_table, label_map)?;
+                Ok(stmt.resolve(symbol_table, label_map)?)
+            },
+            StatementNode::SwitchStmt { condition, stmt, break_label: _ } => {
+                condition.resolve(symbol_table, label_map)?;
+                Ok(stmt.resolve(symbol_table, label_map)?)
+            },
+            StatementNode::CaseStmt { value: _, stmt } => Ok(stmt.resolve(symbol_table, label_map)?),
+            StatementNode::DefaultStmt(stmt) => Ok(stmt.resolve(symbol_table, label_map)?),
             StatementNode::ReturnStmt(expr) => expr.resolve(symbol_table, label_map),
             StatementNode::Goto { label_name: _, label_name_index: _ } => {
                 /* Nothing to do because at this point the label may not have been declared yet */
+                Ok(())
+            },
+            StatementNode::BreakStmt(_) => {
+                /* Nothing to do */
+                Ok(())
+            },
+            StatementNode::ContinueStmt(_) => {
+                /* Nothing to do */
                 Ok(())
             },
             StatementNode::LabelStmt { label_name, label_name_index, stmt} => {
@@ -41,16 +68,54 @@ impl ResolveVarExprLabel for StatementNode {
     }
 }
 
-impl CheckGotoLabel for StatementNode {
-    fn check_goto_label(&mut self, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
+impl ResolveVarExprLabel for ForInit {
+    fn resolve(&mut self, symbol_table: &mut SymbolTable, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
+        match self {
+            ForInit::ExpressionInit(expr_node) => Ok(expr_node.resolve(symbol_table, label_map)?),
+            ForInit::DeclarationInit(declaration_node) => Ok(declaration_node.resolve(symbol_table, label_map)?)
+        }
+    }
+}
+
+impl CheckGotoLabelBreakContinue for StatementNode {
+    fn check_goto_label_break_continue(&mut self, is_inside_loop: bool, is_inside_switch: bool, label_map: &mut HashMap<String, u32>, loop_labels: &mut LoopLabels) -> Result<(), CompilerErrors> {
         match self {
             StatementNode::IfStmt { condition: _, stmt, else_stmt } =>  {
-                stmt.check_goto_label(label_map)?;
+                stmt.check_goto_label_break_continue(is_inside_loop, is_inside_switch, label_map, loop_labels)?;
                 if let Some(else_stmt_unwrapped) = else_stmt {
-                    else_stmt_unwrapped.check_goto_label(label_map)?;
+                    else_stmt_unwrapped.check_goto_label_break_continue(is_inside_loop, is_inside_switch, label_map, loop_labels)?;
                 }
                 Ok(())
             },
+            StatementNode::WhileStmt { condition: _, stmt, loop_labels } => {
+                LABEL_GEN_SINGLETON.get_or_init(|| Mutex::new(LabelGen::new()));
+                let mut labelgen_singleton = LABEL_GEN_SINGLETON.get().unwrap().lock().unwrap();
+                if let None = loop_labels.break_label() {
+                    loop_labels.set_break_label(Some(labelgen_singleton.gen()));
+                }
+                if let None = loop_labels.continue_label() {
+                    loop_labels.set_continue_label(Some(labelgen_singleton.gen()));
+                }
+                drop(labelgen_singleton);
+                Ok(stmt.check_goto_label_break_continue(true, is_inside_switch, label_map, loop_labels)?)
+            },
+            StatementNode::DoWhileStmt { condition: _, stmt, loop_labels } => {
+                stmt.check_goto_label_break_continue(true, is_inside_switch, label_map, loop_labels)?;
+                LABEL_GEN_SINGLETON.get_or_init(|| Mutex::new(LabelGen::new()));
+                let mut labelgen_singleton = LABEL_GEN_SINGLETON.get().unwrap().lock().unwrap();
+                if let None = loop_labels.break_label() {
+                    loop_labels.set_break_label(Some(labelgen_singleton.gen()));
+                }
+                Ok(())
+            },
+            StatementNode::ForStmt { init: _ , condition: _, post_expr: _, stmt, break_label: _, continue_label: _ } => {
+                Ok(stmt.check_goto_label_break_continue(true, is_inside_switch, label_map,loop_labels)?)
+            },
+            StatementNode::SwitchStmt { condition: _, stmt, break_label: _ } => {
+                Ok(stmt.check_goto_label_break_continue(is_inside_loop, true, label_map,loop_labels)?)
+            },
+            StatementNode::CaseStmt { value: _, stmt } => Ok(stmt.check_goto_label_break_continue(is_inside_loop, is_inside_switch, label_map, loop_labels)?),
+            StatementNode::DefaultStmt(stmt) => Ok(stmt.check_goto_label_break_continue(is_inside_loop, is_inside_switch, label_map, loop_labels)?),
             StatementNode::ReturnStmt(_) => {
                 // Nothing to do
                 Ok(())
@@ -63,12 +128,40 @@ impl CheckGotoLabel for StatementNode {
                 eprintln!("Error: missing declaration of label {}", label_name);
                 Err(CompilerErrors::SemanticError)
             },
-            StatementNode::LabelStmt { label_name: _, label_name_index: _, stmt} => stmt.check_goto_label(label_map),
+            StatementNode::BreakStmt(break_label_stmt) => {
+                if !is_inside_loop && !is_inside_switch {
+                    eprintln!("Error: break stmt cannot be outside switch or loops");
+                    return Err(CompilerErrors::SemanticError)
+                }
+                if let Some(break_label) = loop_labels.break_label() {
+                    *break_label_stmt = Some(break_label);
+                } else {
+                    LABEL_GEN_SINGLETON.get_or_init(|| Mutex::new(LabelGen::new()));
+                    *break_label_stmt = Some(LABEL_GEN_SINGLETON.get().unwrap().lock().unwrap().gen());
+                }
+                loop_labels.set_break_label(break_label_stmt.clone());
+                Ok(())
+            },
+            StatementNode::ContinueStmt(continue_label_stmt) => {
+                if !is_inside_loop {
+                    eprintln!("Error: continue stmt must be inside a loop");
+                    return Err(CompilerErrors::SemanticError)
+                }
+                if let Some(continue_label) = loop_labels.continue_label() {
+                    *continue_label_stmt = Some(continue_label);
+                } else {
+                    LABEL_GEN_SINGLETON.get_or_init(|| Mutex::new(LabelGen::new()));
+                    *continue_label_stmt = Some(LABEL_GEN_SINGLETON.get().unwrap().lock().unwrap().gen());
+                }
+                loop_labels.set_continue_label(continue_label_stmt.clone());
+                Ok(())
+            },
+            StatementNode::LabelStmt { label_name: _, label_name_index: _, stmt} => stmt.check_goto_label_break_continue(is_inside_loop, is_inside_switch, label_map, loop_labels),
             StatementNode::Expr(_) => {
                 // Nothing to do
                 Ok(())
             },
-            StatementNode::Compound(block_node) => block_node.check_goto_label(label_map),
+            StatementNode::Compound(block_node) => block_node.check_goto_label_break_continue(is_inside_loop, is_inside_switch, label_map, loop_labels),
             StatementNode::EmptyStmt => {
                 // Note: nothing to do
                 Ok(())

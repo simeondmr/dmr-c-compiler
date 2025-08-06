@@ -1,4 +1,4 @@
-use crate::ast::lang_ast::statement_node::StatementNode;
+use crate::ast::lang_ast::statement_node::{LoopLabels, StatementNode};
 use crate::errors::errors::CompilerErrors;
 use crate::lexer::lexer::Token;
 use crate::parser::block_parse::BlockParse;
@@ -46,6 +46,26 @@ impl GrammarProductionParsing<StatementNode> for Statement {
                 Self::match_token(&Token::Semicolon, &mut lexer)?;
                 Ok(StatementNode::ReturnStmt(expr_node))
             },
+            Token::While => {
+                lexer.next_token()?;
+                Self::match_token(&Token::RoundBracketOpen, &mut lexer)?;
+                drop(lexer);
+                let condition_node = self.expr_parse.parse(0)?;
+                Self::match_token(&Token::RoundBracketClose, &mut Self::lexer_lock())?;
+                let stmt_node = self.parse()?;
+                Ok(StatementNode::WhileStmt { condition: condition_node, stmt: Box::new(stmt_node), loop_labels: LoopLabels::new() })
+            },
+            Token::Do => {
+                lexer.next_token()?;
+                drop(lexer);
+                let stmt_node = self.parse()?;
+                Self::match_token(&Token::While, &mut Self::lexer_lock())?;
+                Self::match_token(&Token::RoundBracketOpen, &mut Self::lexer_lock())?;
+                let condition_node = self.expr_parse.parse(0)?;
+                Self::match_token(&Token::RoundBracketClose, &mut Self::lexer_lock())?;
+                Self::match_token(&Token::Semicolon, &mut Self::lexer_lock())?;
+                Ok(StatementNode::DoWhileStmt { condition: condition_node, stmt: Box::new(stmt_node), loop_labels: LoopLabels::new() })
+            },
             Token::Goto => {
                 lexer.next_token()?;
                 if let Token::Literal(label_name) = lexer.current_token() {
@@ -56,6 +76,16 @@ impl GrammarProductionParsing<StatementNode> for Statement {
                     eprintln!("Syntax error: expected literal in goto statement");
                     Err(CompilerErrors::SyntaxError)
                 }
+            },
+            Token::Break => {
+                lexer.next_token()?;
+                Self::match_token(&Token::Semicolon, &mut lexer)?;
+                Ok(StatementNode::BreakStmt(None))
+            },
+            Token::Continue => {
+                lexer.next_token()?;
+                Self::match_token(&Token::Semicolon, &mut lexer)?;
+                Ok(StatementNode::ContinueStmt(None))
             },
             Token::CurlyBracketOpen => {
                 drop(lexer);
