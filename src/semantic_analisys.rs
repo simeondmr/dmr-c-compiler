@@ -9,4 +9,3 @@ pub mod semantic_analisys_core;
 pub mod check_goto_label_break_continue_trait;
 pub mod block_node_semantic_analisys;
 pub mod symbol_table;
-pub mod ckeck_loops_switch_break_continue;

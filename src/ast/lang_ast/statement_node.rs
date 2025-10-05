@@ -1,10 +1,13 @@
+use std::collections::HashMap;
 use std::sync::Mutex;
 use crate::ast::lang_ast::block_node::BlockNode;
 use crate::ast::lang_ast::declaration_node::DeclarationNode;
 use crate::ast::lang_ast::expr_node::ExprNode;
 use crate::ast::lang_ast::lang_ast_visit_trait::{AstDebugPrinter, GenerateTackyInstructions};
+use crate::tacky::binary_operator_tacky_node::BinaryOperatorTackyNode;
 use crate::tacky::label_gen::{LabelGen, LABEL_GEN_SINGLETON};
 use crate::tacky::tacky_instruction_node::InstructionTackyNode;
+use crate::tacky::tacky_val_node::{TemporaryVar, ValTackyNode};
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -35,13 +38,19 @@ pub enum StatementNode {
     SwitchStmt {
         condition: ExprNode,
         stmt: Box<StatementNode>,
-        break_label: Option<u32>
+        loop_labels: LoopLabels,
+        cases_map: HashMap<i32, u32>,
+        default_stmt_label: Option<u32>
     },
     CaseStmt {
+        label: u32,
         value: ExprNode,
         stmt: Box<StatementNode>
     },
-    DefaultStmt(Box<StatementNode>),
+    DefaultStmt {
+        label: u32,
+        stmt: Box<StatementNode>
+    },
     ReturnStmt(ExprNode),
     Goto {
         label_name: String,
@@ -139,14 +148,25 @@ impl<'a> GenerateTackyInstructions<()> for StatementNode {
             StatementNode::ForStmt { init: _ , condition: _, post_expr: _, stmt: _, break_label: _, continue_label: _ } => {
 
             },
-            StatementNode::SwitchStmt { condition: _, stmt: _, break_label: _ } => {
-                
+            StatementNode::SwitchStmt { condition, stmt, loop_labels, cases_map, default_stmt_label } => {
+                let condition = condition.to_tacky(tacky_instructions);
+                cases_map.iter().for_each(|(case_value, case_label)| {
+                    let case_cmp_tmp_var = TemporaryVar::generate();
+                    tacky_instructions.push(InstructionTackyNode::Binary {
+                        binary_operator: BinaryOperatorTackyNode::Equal,
+                        left_expr: condition.clone(),
+                        right_expr: ValTackyNode::Constant(*case_value),
+                        dest: ValTackyNode::Var(case_cmp_tmp_var)
+                    });
+                    tacky_instructions.push(InstructionTackyNode::JmpIfNotZero { condition: ValTackyNode::Var(case_cmp_tmp_var), jmp_label_target: *case_label });
+                });
+                default_stmt_label.map(|default_label_value| tacky_instructions.push(InstructionTackyNode::Jmp(default_label_value)));
+                stmt.to_tacky(tacky_instructions);
+                tacky_instructions.push(InstructionTackyNode::Label(loop_labels.break_label.unwrap()));
             },
-            StatementNode::CaseStmt { value: _, stmt: _ } => {
-                
-            },
-            StatementNode::DefaultStmt(_) => {
-
+            StatementNode::CaseStmt { label, value: _, stmt } | StatementNode::DefaultStmt { label, stmt } => {
+                tacky_instructions.push(InstructionTackyNode::Label(*label));
+                stmt.to_tacky(tacky_instructions);
             },
             StatementNode::ReturnStmt(expr) => {
                 let expr_tacky = expr.to_tacky(tacky_instructions);
@@ -214,17 +234,29 @@ impl AstDebugPrinter for StatementNode {
             StatementNode::ForStmt { init: _, condition: _, post_expr: _,  stmt: _, break_label: _, continue_label: _ } => {
 
             },
-            StatementNode::SwitchStmt { condition: _, stmt: _, break_label: _ } => {
-
+            StatementNode::SwitchStmt { condition, stmt, loop_labels, cases_map,default_stmt_label} => {
+                println!("Switch(");
+                println!("Condition:");
+                condition.debug_visit();
+                println!("cases list:");
+                cases_map.iter().for_each(|(case_value,case_label) | println!("(case constant value: {}, case label: {})", case_value, case_label));
+                println!("Stmt: ");
+                stmt.debug_visit();
+                println!("break_label: {:?}", loop_labels);
+                println!("default_stmt_label {:?}", default_stmt_label);
+                println!(")");
             },
-            StatementNode::CaseStmt { value, stmt } => {
+            StatementNode::CaseStmt { label, value, stmt } => {
                 println!("Case(");
+                println!("label: {}", label);
                 value.debug_visit();
                 stmt.debug_visit();
                 println!(")");
             },
-            StatementNode::DefaultStmt(stmt) => {
+            StatementNode::DefaultStmt { label, stmt } => {
                 println!("Default(");
+                println!("label: {}", label);
+                println!("stmt:");
                 stmt.debug_visit();
                 println!(")");
             },

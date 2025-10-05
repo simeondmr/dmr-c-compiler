@@ -14,8 +14,8 @@ impl ResolveVarExprLabel for ProgramNode {
 }
 
 impl CheckGotoLabelBreakContinue for ProgramNode {
-    fn check_goto_label_break_continue(&mut self, is_inside_loop: bool, is_inside_switch: bool, label_map: &mut HashMap<String, u32>, loop_labels: &mut LoopLabels) -> Result<(), CompilerErrors> {
+    fn check_goto_label_break_continue(&mut self, is_inside_loop: bool, is_inside_switch: bool, label_map: &mut HashMap<String, u32>, loop_labels: &mut LoopLabels, case_map: &mut Option<&mut HashMap<i32, u32>>, default_label: &mut Option<u32>) -> Result<(), CompilerErrors> {
         let ProgramNode::ProgramDef(function_def) = self;
-        function_def.check_goto_label_break_continue(is_inside_loop, is_inside_switch, label_map, loop_labels)
+        function_def.check_goto_label_break_continue(is_inside_loop, is_inside_switch, label_map, loop_labels, case_map, default_label)
     }
 }

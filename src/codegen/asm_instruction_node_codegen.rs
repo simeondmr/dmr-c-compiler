@@ -44,7 +44,7 @@ impl Codegen for InstructionAsmNode {
             InstructionAsmNode::JmpCC { condition_code, jmp_label_target } => Ok(output_file.write_all(format!("\tj{} .l{}\n", condition_code.code(), jmp_label_target).as_bytes())?),
             InstructionAsmNode::Set { condition_code, dest } => {
                 /*
-                    TODO: at the moment the set destination operand is always a memory operandwhen registers allocation is done set must use only the first byte of every registers.
+                    TODO: at the moment the set destination operand is always a memory operand when registers allocation is done set must use only the first byte of every registers.
                           For example if registers allocator for set decided to use 'rax' register, set must use 'al'
                 */
                 output_file.write_all(format!("\tset{} ", condition_code.code()).as_bytes())?;

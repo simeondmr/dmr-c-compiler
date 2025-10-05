@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::ast::lang_ast::statement_node::{LoopLabels, StatementNode};
 use crate::errors::errors::CompilerErrors;
 use crate::lexer::lexer::Token;
@@ -86,6 +87,27 @@ impl GrammarProductionParsing<StatementNode> for Statement {
                 lexer.next_token()?;
                 Self::match_token(&Token::Semicolon, &mut lexer)?;
                 Ok(StatementNode::ContinueStmt(None))
+            },
+            Token::Switch => {
+                lexer.next_token()?;
+                Self::match_token(&Token::RoundBracketOpen, &mut lexer)?;
+                drop(lexer);
+                let switch_value_node = self.expr_parse.parse(0)?;
+                Self::match_token(&Token::RoundBracketClose, &mut Self::lexer_lock())?;
+                Ok(StatementNode::SwitchStmt { condition: switch_value_node, stmt: Box::new(self.parse()?), loop_labels: LoopLabels::new(), cases_map: HashMap::new(), default_stmt_label: None })
+            },
+            Token::Case => {
+                lexer.next_token()?;
+                drop(lexer);
+                let case_label = self.expr_parse.parse(0)?;
+                Self::match_token(&Token::Colon, &mut Self::lexer_lock())?;
+                Ok(StatementNode::CaseStmt { label: 0, value: case_label, stmt: Box::new(self.parse()?)})
+            },
+            Token::Default => {
+                lexer.next_token()?;
+                drop(lexer);
+                Self::match_token(&Token::Colon, &mut Self::lexer_lock())?;
+                Ok(StatementNode::DefaultStmt { label: 0, stmt: Box::new(self.parse()?) })
             },
             Token::CurlyBracketOpen => {
                 drop(lexer);

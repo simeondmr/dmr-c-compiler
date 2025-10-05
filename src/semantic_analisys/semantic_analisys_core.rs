@@ -10,5 +10,5 @@ pub fn semantic_analisys(program_node: &mut ProgramNode) -> Result<(), CompilerE
     let mut symbol_table = SymbolTable::new();
     let mut label_map: HashMap<String, u32> = HashMap::new();
     program_node.resolve(&mut symbol_table, &mut label_map)?;
-    program_node.check_goto_label_break_continue(false, false, &mut label_map, &mut LoopLabels::new())
+    program_node.check_goto_label_break_continue(false, false, &mut label_map, &mut LoopLabels::new(), &mut None, &mut None)
 }

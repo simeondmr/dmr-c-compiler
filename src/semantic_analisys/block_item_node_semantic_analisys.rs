@@ -18,9 +18,9 @@ impl ResolveVarExprLabel for BlockItemNode {
 }
 
 impl CheckGotoLabelBreakContinue for BlockItemNode {
-    fn check_goto_label_break_continue(&mut self, is_inside_loop: bool, is_inside_switch: bool, label_map: &mut HashMap<String, u32>, loop_labels: &mut LoopLabels) -> Result<(), CompilerErrors> {
+    fn check_goto_label_break_continue(&mut self, is_inside_loop: bool, is_inside_switch: bool, label_map: &mut HashMap<String, u32>, loop_labels: &mut LoopLabels, case_map: &mut Option<&mut HashMap<i32, u32>>, default_label: &mut Option<u32>) -> Result<(), CompilerErrors> {
         if let BlockItemNode::Statement(statement_node) = self {
-            return statement_node.check_goto_label_break_continue(is_inside_loop, is_inside_switch, label_map, loop_labels)
+            return statement_node.check_goto_label_break_continue(is_inside_loop, is_inside_switch, label_map, loop_labels, case_map, default_label)
         }
         Ok(())
     }
