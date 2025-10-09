@@ -29,11 +29,10 @@ pub enum StatementNode {
     },
     ForStmt {
         init: ForInit,
-        condition: ExprNode,
-        post_expr: ExprNode,
+        condition: Option<ExprNode>,
+        post_expr: Option<ExprNode>,
         stmt: Box<StatementNode>,
-        break_label: Option<u32>,
-        continue_label: Option<u32>
+        loop_labels: LoopLabels
     },
     SwitchStmt {
         condition: ExprNode,
@@ -71,7 +70,7 @@ pub enum StatementNode {
 #[allow(dead_code)]
 #[derive(Debug)]
 pub enum ForInit {
-    ExpressionInit(ExprNode),
+    ExpressionInit(Option<ExprNode>),
     DeclarationInit(DeclarationNode)
 }
 
@@ -145,8 +144,22 @@ impl<'a> GenerateTackyInstructions<()> for StatementNode {
                 tacky_instructions.push(InstructionTackyNode::JmpIfNotZero { condition: condition_tacky_node, jmp_label_target: start_loop_label });
                 tacky_instructions.push(InstructionTackyNode::Label(loop_labels.break_label.unwrap()));
             },
-            StatementNode::ForStmt { init: _ , condition: _, post_expr: _, stmt: _, break_label: _, continue_label: _ } => {
-
+            StatementNode::ForStmt { init, condition, post_expr, stmt, loop_labels } => {
+                LABEL_GEN_SINGLETON.get_or_init(|| Mutex::new(LabelGen::new()));
+                let start_loop_label = LABEL_GEN_SINGLETON.get().unwrap().lock().unwrap().gen();
+                init.to_tacky(tacky_instructions);
+                tacky_instructions.push(InstructionTackyNode::Label(start_loop_label));
+                if let Some(condition_node) = condition {
+                    let condition_tacky_node = condition_node.to_tacky(tacky_instructions);
+                    tacky_instructions.push(InstructionTackyNode::JmpIfZero { condition: condition_tacky_node, jmp_label_target: loop_labels.break_label.unwrap() });
+                }
+                stmt.to_tacky(tacky_instructions);
+                tacky_instructions.push(InstructionTackyNode::Label(loop_labels.continue_label.unwrap()));
+                if let Some(post_expr_node) = post_expr {
+                    post_expr_node.to_tacky(tacky_instructions);
+                }
+                tacky_instructions.push(InstructionTackyNode::Jmp(start_loop_label));
+                tacky_instructions.push(InstructionTackyNode::Label(loop_labels.break_label.unwrap()));
             },
             StatementNode::SwitchStmt { condition, stmt, loop_labels, cases_map, default_stmt_label } => {
                 let condition = condition.to_tacky(tacky_instructions);
@@ -198,6 +211,16 @@ impl<'a> GenerateTackyInstructions<()> for StatementNode {
     }
 }
 
+impl GenerateTackyInstructions<()> for ForInit {
+    fn to_tacky(&self, tacky_instructions: &mut Vec<InstructionTackyNode>) -> () {
+        if let ForInit::DeclarationInit(declaration_node) = self {
+            declaration_node.to_tacky(tacky_instructions);
+        } else if let ForInit::ExpressionInit(Some(expr_node)) = self {
+            expr_node.to_tacky(tacky_instructions);
+        }
+    }
+}
+
 impl AstDebugPrinter for StatementNode {
     fn debug_visit(&self) {
         match self {
@@ -231,7 +254,7 @@ impl AstDebugPrinter for StatementNode {
                 println!("\tcontinue_label: {:?}", loop_labels.continue_label);
                 println!(")");
             },
-            StatementNode::ForStmt { init: _, condition: _, post_expr: _,  stmt: _, break_label: _, continue_label: _ } => {
+            StatementNode::ForStmt { init: _, condition: _, post_expr: _,  stmt: _, loop_labels: _ } => {
 
             },
             StatementNode::SwitchStmt { condition, stmt, loop_labels, cases_map,default_stmt_label} => {

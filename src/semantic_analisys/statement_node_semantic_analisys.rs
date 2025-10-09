@@ -27,9 +27,14 @@ impl ResolveVarExprLabel for StatementNode {
                 condition.resolve(symbol_table, label_map)?;
                 Ok(stmt.resolve(symbol_table, label_map)?)
             },
-            StatementNode::ForStmt { init , condition, post_expr: _, stmt, break_label: _, continue_label: _ } => {
+            StatementNode::ForStmt { init , condition, post_expr, stmt, loop_labels: _ } => {
                 init.resolve(symbol_table, label_map)?;
-                condition.resolve(symbol_table, label_map)?;
+                if let Some(condition_node) = condition {
+                    condition_node.resolve(symbol_table, label_map)?;
+                }
+                if let Some(post_expr_node) = post_expr {
+                    post_expr_node.resolve(symbol_table, label_map)?;
+                }
                 Ok(stmt.resolve(symbol_table, label_map)?)
             },
             StatementNode::SwitchStmt { condition, stmt, loop_labels: _, cases_map: _, default_stmt_label: _ } => {
@@ -78,7 +83,8 @@ impl ResolveVarExprLabel for StatementNode {
 impl ResolveVarExprLabel for ForInit {
     fn resolve(&mut self, symbol_table: &mut SymbolTable, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
         match self {
-            ForInit::ExpressionInit(expr_node) => Ok(expr_node.resolve(symbol_table, label_map)?),
+            ForInit::ExpressionInit(Some(expr_node)) => Ok(expr_node.resolve(symbol_table, label_map)?),
+            ForInit::ExpressionInit(None) => Ok(()),
             ForInit::DeclarationInit(declaration_node) => Ok(declaration_node.resolve(symbol_table, label_map)?)
         }
     }
@@ -115,8 +121,17 @@ impl CheckGotoLabelBreakContinue for StatementNode {
                 }
                 Ok(())
             },
-            StatementNode::ForStmt { init: _ , condition: _, post_expr: _, stmt, break_label: _, continue_label: _ } => {
-                Ok(stmt.check_goto_label_break_continue(true, is_inside_switch, label_map,loop_labels, case_map, default_label)?)
+            StatementNode::ForStmt { init: _ , condition: _, post_expr: _, stmt, loop_labels } => {
+                LABEL_GEN_SINGLETON.get_or_init(|| Mutex::new(LabelGen::new()));
+                let mut labelgen_singleton = LABEL_GEN_SINGLETON.get().unwrap().lock().unwrap();
+                if let None = loop_labels.break_label() {
+                    loop_labels.set_break_label(Some(labelgen_singleton.gen()));
+                }
+                if let None = loop_labels.continue_label() {
+                    loop_labels.set_continue_label(Some(labelgen_singleton.gen()));
+                }
+                drop(labelgen_singleton);
+                Ok(stmt.check_goto_label_break_continue(true, is_inside_switch, label_map, loop_labels, case_map, default_label)?)
             },
             StatementNode::SwitchStmt { condition: _, stmt, loop_labels, cases_map, default_stmt_label } => {
                 LABEL_GEN_SINGLETON.get_or_init(|| Mutex::new(LabelGen::new()));

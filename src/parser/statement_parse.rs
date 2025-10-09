@@ -4,6 +4,7 @@ use crate::errors::errors::CompilerErrors;
 use crate::lexer::lexer::Token;
 use crate::parser::block_parse::BlockParse;
 use crate::parser::expr_parse::ExprParse;
+use crate::parser::for_init_parse::ForInitParse;
 use crate::parser::program_parse::{GrammarProductionParsing, PrecedenceClimbingParsing};
 
 pub struct Statement {
@@ -55,6 +56,30 @@ impl GrammarProductionParsing<StatementNode> for Statement {
                 Self::match_token(&Token::RoundBracketClose, &mut Self::lexer_lock())?;
                 let stmt_node = self.parse()?;
                 Ok(StatementNode::WhileStmt { condition: condition_node, stmt: Box::new(stmt_node), loop_labels: LoopLabels::new() })
+            },
+            Token::For => {
+                lexer.next_token()?;
+                Self::match_token(&Token::RoundBracketOpen, &mut lexer)?;
+                drop(lexer);
+                let for_init_node = ForInitParse::new().parse()?;
+                let current_token = Self::lexer().lock().unwrap().current_token();
+                let condition_node =  if let Token::Semicolon = current_token {
+                    None
+                } else {
+                    Some(self.expr_parse.parse(0)?)
+                };
+                let mut lexer = Self::lexer_lock();
+                Self::match_token(&Token::Semicolon, &mut lexer)?;
+                let next_token = lexer.current_token();
+                drop(lexer);
+                let post_expr_node = if let Token::RoundBracketClose = next_token {
+                    None
+                } else {
+                    Some(self.expr_parse.parse(0)?)
+                };
+                Self::match_token(&Token::RoundBracketClose, &mut Self::lexer_lock())?;
+                let stmt_node = self.parse()?;
+                Ok(StatementNode::ForStmt { init: for_init_node, condition: condition_node, post_expr: post_expr_node, stmt: Box::new(stmt_node), loop_labels: LoopLabels::new() })
             },
             Token::Do => {
                 lexer.next_token()?;
