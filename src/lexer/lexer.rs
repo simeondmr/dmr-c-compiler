@@ -1,11 +1,24 @@
+// dmr C compiler
+// Copyright (C) 2025  Simeon Tornabene
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <https://www.gnu.org/licenses/>.
+
 use std::collections::{HashMap, VecDeque};
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::Path;
-use std::sync::{Mutex, OnceLock};
 use crate::errors::errors::CompilerErrors;
-
-pub static LEXER_SINGLETON: OnceLock<Mutex<Lexer>> = OnceLock::new();
 
 #[derive(Clone, Debug)]
 #[allow(dead_code)]
@@ -169,7 +182,7 @@ impl Lexer {
         }
     }
     
-    pub fn feed_lookeheads_tokens(&mut self, n: u8) -> Result<(), CompilerErrors> {
+    pub fn feed_lookaheads_tokens(&mut self, n: u8) -> Result<(), CompilerErrors> {
         for _ in 0..n {
             let token = self.feed()?;
             self.lookahead_tokens.push_back(token);
@@ -184,6 +197,13 @@ impl Lexer {
     pub fn remove_lookahead(&mut self) -> Result<Option<Token>, CompilerErrors> {
         self.lookahead_tokens.pop_front();
         self.next_token()
+    }
+
+    pub fn match_lookahead(&mut self, n: usize, token: &Token) -> Result<bool, CompilerErrors>  {
+        if let Some(lookahead) = self.lookahead_tokens.get(n) {
+            return Ok(lookahead == token)
+        }
+        Err(CompilerErrors::LexicalErrorLookahead)
     }
     
     pub fn next_token(&mut self) -> Result<Option<Token>, CompilerErrors> {

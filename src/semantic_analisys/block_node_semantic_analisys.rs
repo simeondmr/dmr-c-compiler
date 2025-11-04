@@ -1,19 +1,35 @@
+// dmr C compiler
+// Copyright (C) 2025  Simeon Tornabene
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <https://www.gnu.org/licenses/>.
+
 use std::collections::HashMap;
 use crate::ast::lang_ast::block_node::BlockNode;
 use crate::ast::lang_ast::statement_node::LoopLabels;
 use crate::errors::errors::CompilerErrors;
 use crate::semantic_analisys::check_goto_label_break_continue_trait::{CheckGotoLabelBreakContinue};
 use crate::semantic_analisys::resolve_var_expr_trait::ResolveVarExprLabel;
-use crate::semantic_analisys::symbol_table::SymbolTable;
+use crate::semantic_analisys::identifier_table::IdentifierTable;
 
 impl ResolveVarExprLabel for BlockNode {
-    fn resolve(&mut self, symbol_table: &mut SymbolTable, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
+    fn resolve(&mut self, identifier_table: &mut IdentifierTable, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
         let BlockNode::Item(items) = self;
-        symbol_table.push_block();
+        identifier_table.push_block();
         for item in items {
-            item.resolve(symbol_table, label_map)?;
+            item.resolve(identifier_table, label_map)?;
         }
-        symbol_table.pop_block();
+        identifier_table.pop_block();
         Ok(())
     }
 }

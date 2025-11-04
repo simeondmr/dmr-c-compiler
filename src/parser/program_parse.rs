@@ -1,13 +1,28 @@
-use std::path::Path;
-use std::sync::{Mutex, MutexGuard};
+// dmr C compiler
+// Copyright (C) 2025  Simeon Tornabene
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <https://www.gnu.org/licenses/>.
+
 use crate::ast::lang_ast::expr_node::AssignmentOperatorType;
 use crate::ast::lang_ast::program_node::ProgramNode;
 use crate::errors::errors::CompilerErrors;
-use crate::lexer::lexer::{Lexer, LEXER_SINGLETON, Token};
+use crate::lexer::lexer::{Lexer, Token};
+use crate::parser::function_declaration_parse::FunctionDeclarationParse;
 use crate::parser::function_parse::FunctionParse;
 
 pub trait GrammarProductionParsing<T> {
-    fn parse(&self) -> Result<T, CompilerErrors>;
+    fn parse(&self, lexer: &mut Lexer) -> Result<T, CompilerErrors>;
 
     fn match_token(expected_token: &Token, lexer: &mut Lexer) -> Result<(), CompilerErrors> {
         if *expected_token == lexer.current_token() {
@@ -17,16 +32,6 @@ pub trait GrammarProductionParsing<T> {
 
         eprintln!("Error at line {}: expected {:?}, but found {:?}", lexer.current_line(), expected_token, lexer.current_token());
         Err(CompilerErrors::SyntaxError)
-    }
-
-    ///Use this method if you wanna lock the lexer
-    fn lexer_lock() -> MutexGuard<'static, Lexer> {
-        LEXER_SINGLETON.get().unwrap().lock().unwrap()
-    }
-
-    ///Use this methods if you don't want to lock the lexer
-    fn lexer() -> &'static Mutex<Lexer> {
-        LEXER_SINGLETON.get().unwrap()
     }
 
     fn is_pre_post_operator(operator: &Token) -> bool {
@@ -40,7 +45,7 @@ pub trait GrammarProductionParsing<T> {
 
 #[allow(dead_code)]
 pub trait PrecedenceClimbingParsing<T> {
-    fn parse(&self, min_prec: u8) -> Result<T, CompilerErrors>;
+    fn parse(&self, lexer: &mut Lexer, min_prec: u8, comma_stop: bool) -> Result<T, CompilerErrors>;
 
     fn match_token(expected_token: &Token, lexer: &mut Lexer) -> Result<(), CompilerErrors> {
         if *expected_token == lexer.current_token() {
@@ -50,16 +55,6 @@ pub trait PrecedenceClimbingParsing<T> {
 
         eprintln!("Error at line {}: expected {:?}, but found {:?}", lexer.current_line(), expected_token, lexer.current_token());
         Err(CompilerErrors::SyntaxError)
-    }
-
-    ///Use this method if you wanna lock the lexer
-    fn lexer_lock() -> MutexGuard<'static, Lexer> {
-        LEXER_SINGLETON.get().unwrap().lock().unwrap()
-    }
-
-    ///Use this methods if you don't want to lock the lexer
-    fn lexer() -> &'static Mutex<Lexer> {
-        LEXER_SINGLETON.get().unwrap()
     }
 
     fn is_operator(operator: &Token) -> bool {
@@ -157,26 +152,26 @@ pub trait PrecedenceClimbingParsing<T> {
     }
 }
 
-pub struct ProgramParse<'a> {
-    input_path: &'a Path,
+pub struct ProgramParse {
     function_parse: FunctionParse
 }
 
-impl <'a> ProgramParse <'a> {
-    pub fn new(input_path: &Path) -> ProgramParse {
+impl ProgramParse {
+    pub fn new() -> ProgramParse {
         ProgramParse {
             function_parse: FunctionParse::new(),
-            input_path
         }
     }
 }
 
-impl <'a> GrammarProductionParsing<ProgramNode> for ProgramParse<'a> {
-    fn parse(&self) -> Result<ProgramNode, CompilerErrors> {
-        LEXER_SINGLETON.get_or_init(|| Mutex::new(Lexer::new(self.input_path)));
-        Self::lexer().lock().unwrap().next_token()?;
-        let function_node = self.function_parse.parse()?;
-        Self::match_token(&Token::Eof, &mut Self::lexer_lock())?;
-        Ok(ProgramNode::ProgramDef(function_node))
+impl GrammarProductionParsing<ProgramNode> for ProgramParse {
+    fn parse(&self, lexer: &mut Lexer) -> Result<ProgramNode, CompilerErrors> {
+        let mut functions = Vec::new();
+        lexer.next_token()?;
+        while lexer.current_token() != Token::Eof {
+            functions.push(FunctionDeclarationParse.parse(lexer)?);
+        }
+        Self::match_token(&Token::Eof, lexer)?;
+        Ok(ProgramNode::ProgramDef(functions))
     }
 }

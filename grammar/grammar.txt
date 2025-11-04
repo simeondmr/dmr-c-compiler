@@ -1,10 +1,11 @@
 Grammar:
 
-<program> ::= <function>
-<function> ::= "int" <identifier> "(" "void" ")" <block>
-<block-item> ::= <declaration> | <statement>
+<program> ::= { <function-declaration> }
+<function-declaration> ::= "int" <identifier> "(" <function-params> ")" ( ";" | <block> )
+<function-params> ::= "int" <identifier> { ","  "int" <identifier> } | "void"
 <block> ::= "{" { <block-item> } "}"
-<for-init> ::= <declaration> | [ <expr> ] ";"
+<block-item> ::= <declaration> | <statement>
+<for-init> ::= <var-declaration> | [ <expr> ] ";"
 <statement> ::= "if" "(" <expr> ")" <statement> [ "else" <statement> ]
               | "while" "(" <expr>  ")" <statement>
               | "do" <statement> "while" "(" <expr> ")" ";"
@@ -20,7 +21,8 @@ Grammar:
               | <expr> ";"
               | <block>
               | ";"
-<declaration> ::= "int" <identifier> [ "=" <expr> ] ";"
+<declaration> ::= <var-declaration> | <function-declaration>
+<var-declaration> ::= "int" <identifier> [ "=" <expr> ] ";"
 <exp> ::= <factor>
         | <exp> binop <exp>
         | <exp> "?" <exp> ":" <exp>
@@ -30,6 +32,8 @@ Grammar:
            | <identifier> <pre-post-op>
            | "(" <exp> ")"
            | <identifier>
+           | <identifier> "(" [ <func-args> ] ")"
+<func-args> ::= <exp> { "," <exp> }
 <unop> ::= "-" | "~" | "!"
 <binop> ::= "+"
           | "-"

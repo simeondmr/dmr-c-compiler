@@ -1,3 +1,19 @@
+// dmr C compiler
+// Copyright (C) 2025  Simeon Tornabene
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <https://www.gnu.org/licenses/>.
+
 use std::collections::HashMap;
 use std::sync::Mutex;
 use crate::ast::lang_ast::expr_node::ExprNode;
@@ -5,51 +21,51 @@ use crate::ast::lang_ast::statement_node::{ForInit, LoopLabels, StatementNode};
 use crate::errors::errors::CompilerErrors;
 use crate::semantic_analisys::check_goto_label_break_continue_trait::{CheckGotoLabelBreakContinue};
 use crate::semantic_analisys::resolve_var_expr_trait::ResolveVarExprLabel;
-use crate::semantic_analisys::symbol_table::SymbolTable;
+use crate::semantic_analisys::identifier_table::IdentifierTable;
 use crate::tacky::label_gen::{ LabelGen, LABEL_GEN_SINGLETON };
 
 impl ResolveVarExprLabel for StatementNode {
-    fn resolve(&mut self, symbol_table: &mut SymbolTable, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
+    fn resolve(&mut self, identifier_table: &mut IdentifierTable, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
         match self {
             StatementNode::IfStmt { condition, stmt, else_stmt } =>  {
-                condition.resolve(symbol_table, label_map)?;
-                stmt.resolve(symbol_table, label_map)?;
+                condition.resolve(identifier_table, label_map)?;
+                stmt.resolve(identifier_table, label_map)?;
                 if let Some(else_stmt_unwrapped) = else_stmt {
-                    else_stmt_unwrapped.resolve(symbol_table, label_map)?;
+                    else_stmt_unwrapped.resolve(identifier_table, label_map)?;
                 }
                 Ok(())
             },
             StatementNode::WhileStmt { condition, stmt, loop_labels: _ } => {
-                condition.resolve(symbol_table, label_map)?;
-                Ok(stmt.resolve(symbol_table, label_map)?)
+                condition.resolve(identifier_table, label_map)?;
+                Ok(stmt.resolve(identifier_table, label_map)?)
             },
             StatementNode::DoWhileStmt { condition, stmt, loop_labels: _} => {
-                condition.resolve(symbol_table, label_map)?;
-                Ok(stmt.resolve(symbol_table, label_map)?)
+                condition.resolve(identifier_table, label_map)?;
+                Ok(stmt.resolve(identifier_table, label_map)?)
             },
             StatementNode::ForStmt { init , condition, post_expr, stmt, loop_labels: _ } => {
-                init.resolve(symbol_table, label_map)?;
+                init.resolve(identifier_table, label_map)?;
                 if let Some(condition_node) = condition {
-                    condition_node.resolve(symbol_table, label_map)?;
+                    condition_node.resolve(identifier_table, label_map)?;
                 }
                 if let Some(post_expr_node) = post_expr {
-                    post_expr_node.resolve(symbol_table, label_map)?;
+                    post_expr_node.resolve(identifier_table, label_map)?;
                 }
-                Ok(stmt.resolve(symbol_table, label_map)?)
+                Ok(stmt.resolve(identifier_table, label_map)?)
             },
             StatementNode::SwitchStmt { condition, stmt, loop_labels: _, cases_map: _, default_stmt_label: _ } => {
-                condition.resolve(symbol_table, label_map)?;
-                Ok(stmt.resolve(symbol_table, label_map)?)
+                condition.resolve(identifier_table, label_map)?;
+                Ok(stmt.resolve(identifier_table, label_map)?)
             },
             StatementNode::CaseStmt { label: _, value, stmt } => {
                 if let ExprNode::Constant(_) = value {
-                    return Ok(stmt.resolve(symbol_table, label_map)?)
+                    return Ok(stmt.resolve(identifier_table, label_map)?)
                 }
                 eprintln!("Error: case value must be a constant value");
                 Err(CompilerErrors::SemanticError)
             }
-            StatementNode::DefaultStmt { label: _, stmt} => Ok(stmt.resolve(symbol_table, label_map)?),
-            StatementNode::ReturnStmt(expr) => expr.resolve(symbol_table, label_map),
+            StatementNode::DefaultStmt { label: _, stmt} => Ok(stmt.resolve(identifier_table, label_map)?),
+            StatementNode::ReturnStmt(expr) => expr.resolve(identifier_table, label_map),
             StatementNode::Goto { label_name: _, label_name_index: _ } => {
                 /* Nothing to do because at this point the label may not have been declared yet */
                 Ok(())
@@ -68,10 +84,10 @@ impl ResolveVarExprLabel for StatementNode {
                 let new_label_index = labelgen_singleton.gen();
                 label_map.insert(label_name.to_string(), new_label_index);
                 *label_name_index = new_label_index;
-                stmt.resolve(symbol_table, label_map)
+                stmt.resolve(identifier_table, label_map)
             },
-            StatementNode::Compound(block_node) => block_node.resolve(symbol_table, label_map),
-            StatementNode::Expr(expr) => expr.resolve(symbol_table, label_map),
+            StatementNode::Compound(block_node) => block_node.resolve(identifier_table, label_map),
+            StatementNode::Expr(expr) => expr.resolve(identifier_table, label_map),
             StatementNode::EmptyStmt => {
                 // Note: nothing to do
                 Ok(())
@@ -81,11 +97,11 @@ impl ResolveVarExprLabel for StatementNode {
 }
 
 impl ResolveVarExprLabel for ForInit {
-    fn resolve(&mut self, symbol_table: &mut SymbolTable, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
+    fn resolve(&mut self, identifier_table: &mut IdentifierTable, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
         match self {
-            ForInit::ExpressionInit(Some(expr_node)) => Ok(expr_node.resolve(symbol_table, label_map)?),
+            ForInit::ExpressionInit(Some(expr_node)) => Ok(expr_node.resolve(identifier_table, label_map)?),
             ForInit::ExpressionInit(None) => Ok(()),
-            ForInit::DeclarationInit(declaration_node) => Ok(declaration_node.resolve(symbol_table, label_map)?)
+            ForInit::DeclarationInit(declaration_node) => Ok(declaration_node.resolve(identifier_table, label_map)?)
         }
     }
 }
