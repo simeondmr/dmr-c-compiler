@@ -22,7 +22,9 @@ use crate::errors::errors::CompilerErrors;
 use crate::semantic_analisys::check_goto_label_break_continue_trait::{CheckGotoLabelBreakContinue};
 use crate::semantic_analisys::resolve_var_expr_trait::ResolveVarExprLabel;
 use crate::semantic_analisys::identifier_table::IdentifierTable;
-use crate::tacky::label_gen::{ LabelGen, LABEL_GEN_SINGLETON };
+use crate::semantic_analisys::type_check_semantic_analisys_trait::TypeCheck;
+use crate::symbol_table::symbol_table::SymbolTable;
+use crate::tacky::label_gen::{LabelGen, LABEL_GEN_SINGLETON };
 
 impl ResolveVarExprLabel for StatementNode {
     fn resolve(&mut self, identifier_table: &mut IdentifierTable, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
@@ -102,6 +104,16 @@ impl ResolveVarExprLabel for ForInit {
             ForInit::ExpressionInit(Some(expr_node)) => Ok(expr_node.resolve(identifier_table, label_map)?),
             ForInit::ExpressionInit(None) => Ok(()),
             ForInit::DeclarationInit(declaration_node) => Ok(declaration_node.resolve(identifier_table, label_map)?)
+        }
+    }
+}
+
+impl TypeCheck for ForInit {
+    fn type_check(&self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
+        match self {
+            ForInit::ExpressionInit(Some(expr_node)) => Ok(expr_node.type_check(symbol_table, is_inside_function)?),
+            ForInit::ExpressionInit(None) => Ok(()),
+            ForInit::DeclarationInit(declaration_node) => Ok(declaration_node.type_check(symbol_table, is_inside_function)?)
         }
     }
 }
@@ -228,6 +240,74 @@ impl CheckGotoLabelBreakContinue for StatementNode {
                 Ok(())
             },
             StatementNode::Compound(block_node) => block_node.check_goto_label_break_continue(is_inside_loop, is_inside_switch, label_map, loop_labels, case_map, default_label),
+            StatementNode::EmptyStmt => {
+                // Note: nothing to do
+                Ok(())
+            }
+        }
+    }
+}
+
+impl TypeCheck for StatementNode {
+    fn type_check(&self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
+        match self {
+            StatementNode::IfStmt { condition, stmt, else_stmt } =>  {
+                condition.type_check(symbol_table, is_inside_function)?;
+                stmt.type_check(symbol_table, is_inside_function)?;
+                if let Some(else_stmt_unwrapped) = else_stmt {
+                    else_stmt_unwrapped.type_check(symbol_table, is_inside_function)?;
+                }
+                Ok(())
+            },
+            StatementNode::WhileStmt { condition, stmt, loop_labels: _ } => {
+                condition.type_check(symbol_table, is_inside_function)?;
+                Ok(stmt.type_check(symbol_table, is_inside_function)?)
+            },
+            StatementNode::DoWhileStmt { condition, stmt, loop_labels: _} => {
+                condition.type_check(symbol_table, is_inside_function)?;
+                Ok(stmt.type_check(symbol_table, is_inside_function)?)
+            },
+            StatementNode::ForStmt { init , condition, post_expr, stmt, loop_labels: _ } => {
+                init.type_check(symbol_table, is_inside_function)?;
+                if let Some(condition_node) = condition {
+                    condition_node.type_check(symbol_table, is_inside_function)?;
+                }
+                if let Some(post_expr_node) = post_expr {
+                    post_expr_node.type_check(symbol_table, is_inside_function)?;
+                }
+                Ok(stmt.type_check(symbol_table, is_inside_function)?)
+            },
+            StatementNode::SwitchStmt { condition, stmt, loop_labels: _, cases_map: _, default_stmt_label: _ } => {
+                condition.type_check(symbol_table, is_inside_function)?;
+                Ok(stmt.type_check(symbol_table, is_inside_function)?)
+            },
+            StatementNode::CaseStmt { label: _, value, stmt } => {
+                if let ExprNode::Constant(_) = value {
+                    return Ok(stmt.type_check(symbol_table, is_inside_function)?)
+                }
+                eprintln!("Error: case value must be a constant value");
+                Err(CompilerErrors::SemanticError)
+            }
+            StatementNode::DefaultStmt { label: _, stmt} => Ok(stmt.type_check(symbol_table, is_inside_function)?),
+            StatementNode::ReturnStmt(expr) => expr.type_check(symbol_table, is_inside_function),
+            StatementNode::Goto { label_name: _, label_name_index: _ } => {
+                /* Nothing to do because at this point the label may not have been declared yet */
+                Ok(())
+            },
+            StatementNode::BreakStmt(_) => {
+                /* Nothing to do */
+                Ok(())
+            },
+            StatementNode::ContinueStmt(_) => {
+                /* Nothing to do */
+                Ok(())
+            },
+            StatementNode::LabelStmt { label_name: _, label_name_index: _, stmt: _} => {
+                /* Nothing to do */
+                Ok(())
+            },
+            StatementNode::Compound(block_node) => block_node.type_check(symbol_table, is_inside_function),
+            StatementNode::Expr(expr) => expr.type_check(symbol_table, is_inside_function),
             StatementNode::EmptyStmt => {
                 // Note: nothing to do
                 Ok(())

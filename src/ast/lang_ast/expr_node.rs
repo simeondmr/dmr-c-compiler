@@ -196,6 +196,13 @@ impl GenerateTackyInstructions<ValTackyNode> for ExprNode {
                 }
                 ValTackyNode::Var(var_index)
             },
+            ExprNode::FunctionCall { name, args} => {
+                let mut args_tacky_node = Vec::new();
+                args.into_iter().for_each(|arg| args_tacky_node.push(arg.to_tacky(tacky_instructions)));
+                let ret_val_tacky_node = TemporaryVar::generate();
+                tacky_instructions.push(InstructionTackyNode::FuncCall { func_name: name.to_string(), args: args_tacky_node, ret_val: ValTackyNode::Var(ret_val_tacky_node) });
+                ValTackyNode::Var(ret_val_tacky_node)
+            },
             _ => {
                 //Note: for covering ExprNode::Assignment(left_expr, right_expr) where left_expr is not a Var...note that here this case can't happen because of semantic analisys
                 ValTackyNode::Empty

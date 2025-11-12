@@ -33,6 +33,7 @@ mod codegen;
 mod instruction_fixing;
 mod replacing_pseudoregisters;
 mod semantic_analisys;
+mod symbol_table;
 
 fn main() -> Result<(), CompilerErrors>  {
     let args: Vec<String> = env::args().collect();

@@ -21,6 +21,8 @@ use crate::errors::errors::CompilerErrors;
 use crate::semantic_analisys::check_goto_label_break_continue_trait::{ CheckGotoLabelBreakContinue };
 use crate::semantic_analisys::resolve_var_expr_trait::ResolveVarExprLabel;
 use crate::semantic_analisys::identifier_table::IdentifierTable;
+use crate::semantic_analisys::type_check_semantic_analisys_trait::TypeCheck;
+use crate::symbol_table::symbol_table::SymbolTable;
 
 impl ResolveVarExprLabel for ProgramNode {
     fn resolve(&mut self, identifier_table: &mut IdentifierTable, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
@@ -37,6 +39,16 @@ impl CheckGotoLabelBreakContinue for ProgramNode {
         let ProgramNode::ProgramDef(functions) = self;
         for function in functions {
             function.check_goto_label_break_continue(is_inside_loop, is_inside_switch, label_map, loop_labels, case_map, default_label)?;
+        }
+        Ok(())
+    }
+}
+
+impl TypeCheck for ProgramNode {
+    fn type_check(&self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
+        let ProgramNode::ProgramDef(functions) = self;
+        for function in functions {
+            function.type_check(symbol_table, is_inside_function)?;
         }
         Ok(())
     }

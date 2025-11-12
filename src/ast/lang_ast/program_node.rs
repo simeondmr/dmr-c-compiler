@@ -25,9 +25,10 @@ pub enum ProgramNode {
 
 impl GenerateTacky<ProgramTackyNode> for ProgramNode {
     fn to_tacky(&self) -> ProgramTackyNode {
-        todo!()
-        //let ProgramNode::ProgramDef(func_node) = self;
-        //ProgramTackyNode::ProgramDef(func_node.to_tacky())
+        let ProgramNode::ProgramDef(functions) = self;
+        let mut functions_tacky = Vec::new();
+        functions.iter().for_each(|function| functions_tacky.push(function.to_tacky()));
+        ProgramTackyNode::ProgramDef(functions_tacky)
     }
 }
 

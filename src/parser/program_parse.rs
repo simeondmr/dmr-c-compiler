@@ -19,7 +19,6 @@ use crate::ast::lang_ast::program_node::ProgramNode;
 use crate::errors::errors::CompilerErrors;
 use crate::lexer::lexer::{Lexer, Token};
 use crate::parser::function_declaration_parse::FunctionDeclarationParse;
-use crate::parser::function_parse::FunctionParse;
 
 pub trait GrammarProductionParsing<T> {
     fn parse(&self, lexer: &mut Lexer) -> Result<T, CompilerErrors>;
@@ -153,13 +152,13 @@ pub trait PrecedenceClimbingParsing<T> {
 }
 
 pub struct ProgramParse {
-    function_parse: FunctionParse
+    
 }
 
 impl ProgramParse {
     pub fn new() -> ProgramParse {
         ProgramParse {
-            function_parse: FunctionParse::new(),
+
         }
     }
 }

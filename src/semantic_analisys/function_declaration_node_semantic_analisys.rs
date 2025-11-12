@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <https://www.gnu.org/licenses/>.
-
 use std::collections::HashMap;
 use crate::ast::lang_ast::block_item_node::BlockItemNode;
 use crate::ast::lang_ast::block_node::BlockNode;
@@ -24,6 +23,8 @@ use crate::errors::errors::CompilerErrors;
 use crate::semantic_analisys::check_goto_label_break_continue_trait::CheckGotoLabelBreakContinue;
 use crate::semantic_analisys::resolve_var_expr_trait::ResolveVarExprLabel;
 use crate::semantic_analisys::identifier_table::IdentifierTable;
+use crate::semantic_analisys::type_check_semantic_analisys_trait::TypeCheck;
+use crate::symbol_table::symbol_table::{Linkage, Symbol, SymbolInfo, SymbolTable};
 
 impl ResolveVarExprLabel for FunctionDeclarationNode {
     fn resolve(&mut self, identifier_table: &mut IdentifierTable, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
@@ -47,6 +48,21 @@ impl CheckGotoLabelBreakContinue for FunctionDeclarationNode {
         let FunctionDeclarationNode::FunctionDef { func_name: _, params: _,  block_option } = self;
         if let Some(block) = block_option {
             block.check_goto_label_break_continue(is_inside_loop, is_inside_switch, label_map, loop_labels, case_list, default_label)?;
+        }
+        //Note: in case of function without a body, for example during a function prototype declaration there is nothing to do
+        Ok(())
+    }
+}
+
+impl TypeCheck for FunctionDeclarationNode {
+    fn type_check(&self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
+        let FunctionDeclarationNode::FunctionDef { func_name, params,  block_option } = self;
+        symbol_table.add_func_decl(Symbol {
+            name: func_name.to_string(),
+            linkage: Linkage::External,
+            symbol_info: SymbolInfo::Function { params_len: params.len(), defined: block_option.is_some()} }, is_inside_function)?;
+        if let Some(block) = block_option {
+            block.type_check(symbol_table, true)?;
         }
         //Note: in case of function without a body, for example during a function prototype declaration there is nothing to do
         Ok(())

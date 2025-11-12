@@ -14,13 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <https://www.gnu.org/licenses/>.
 
-pub mod program_node;
-pub mod lang_ast_visit_trait;
-pub mod statement_node;
-pub mod expr_node;
-pub mod unary_operator_node;
-pub mod binary_operator_node;
-pub mod declaration_node;
-pub mod block_item_node;
-pub mod block_node;
-pub mod function_declaration_node;
+use crate::errors::errors::CompilerErrors;
+use crate::symbol_table::symbol_table::SymbolTable;
+
+pub trait TypeCheck {
+    fn type_check(&self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors>;
+}

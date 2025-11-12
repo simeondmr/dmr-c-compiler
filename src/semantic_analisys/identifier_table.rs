@@ -23,6 +23,7 @@ pub struct IdentifierInfo {
     has_external_link: bool
 }
 
+#[allow(dead_code)]
 impl IdentifierInfo {
     fn new(address: u32, has_external_link: bool) -> IdentifierInfo {
         IdentifierInfo {
@@ -114,7 +115,6 @@ impl IdentifierTable {
     }
 
     pub fn var_index(&self, var_name: &String) -> Option<u32> {
-        println!("Hashmap for var {:?}", self.block_stack);
         for block in self.block_stack.iter().rev() {
             if let Some(identifier_info) = block.get(var_name) {
                 return Some(identifier_info.address())

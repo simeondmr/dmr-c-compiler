@@ -19,6 +19,8 @@ use crate::ast::lang_ast::expr_node::ExprNode;
 use crate::errors::errors::CompilerErrors;
 use crate::semantic_analisys::resolve_var_expr_trait::ResolveVarExprLabel;
 use crate::semantic_analisys::identifier_table::IdentifierTable;
+use crate::semantic_analisys::type_check_semantic_analisys_trait::TypeCheck;
+use crate::symbol_table::symbol_table::SymbolTable;
 
 impl ResolveVarExprLabel for ExprNode {
     fn resolve(&mut self, identifier_table: &mut IdentifierTable, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
@@ -58,6 +60,38 @@ impl ResolveVarExprLabel for ExprNode {
                     arg.resolve(identifier_table, label_map)?;
                 }
                 Ok(())
+            }
+        }
+    }
+}
+
+impl TypeCheck for ExprNode {
+    fn type_check(&self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
+        match self {
+            ExprNode::Constant(_) => Ok(()),
+            ExprNode::Unary { unary_operator: _, expr } => expr.type_check(symbol_table, is_inside_function),
+            ExprNode::Binary { binary_operator: _, left_expr, right_expr } => {
+                left_expr.type_check(symbol_table, is_inside_function)?;
+                right_expr.type_check(symbol_table, is_inside_function)
+            },
+            ExprNode::Assignment { assignment_type: _, dest, expr } => {
+                dest.type_check(symbol_table, is_inside_function)?;
+                expr.type_check(symbol_table, is_inside_function)
+            },
+            ExprNode::PrePostOperator { pre_post_operator_type: _, identifier} => identifier.type_check(symbol_table, is_inside_function),
+            ExprNode::Conditional { condition, true_expr, false_expr } => {
+                condition.type_check(symbol_table, is_inside_function)?;
+                true_expr.type_check(symbol_table, is_inside_function)?;
+                false_expr.type_check(symbol_table, is_inside_function)
+            },
+            ExprNode::Var { var_name, var_name_index: _ } => {
+                symbol_table.is_var(var_name)
+            },
+            ExprNode::FunctionCall { name, args } => {
+                for arg in args {
+                    arg.type_check(symbol_table, is_inside_function)?;
+                }
+                symbol_table.is_func(name, args.len())
             }
         }
     }

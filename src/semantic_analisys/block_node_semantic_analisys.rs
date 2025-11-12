@@ -21,6 +21,8 @@ use crate::errors::errors::CompilerErrors;
 use crate::semantic_analisys::check_goto_label_break_continue_trait::{CheckGotoLabelBreakContinue};
 use crate::semantic_analisys::resolve_var_expr_trait::ResolveVarExprLabel;
 use crate::semantic_analisys::identifier_table::IdentifierTable;
+use crate::semantic_analisys::type_check_semantic_analisys_trait::TypeCheck;
+use crate::symbol_table::symbol_table::SymbolTable;
 
 impl ResolveVarExprLabel for BlockNode {
     fn resolve(&mut self, identifier_table: &mut IdentifierTable, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
@@ -40,6 +42,18 @@ impl CheckGotoLabelBreakContinue for BlockNode {
         for item in items {
             item.check_goto_label_break_continue(is_inside_loop, is_inside_switch, label_map, loop_labels, case_map, default_label)?
         }
+        Ok(())
+    }
+}
+
+impl TypeCheck for BlockNode {
+    fn type_check(&self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
+        let BlockNode::Item(items) = self;
+        symbol_table.push_block();
+        for item in items {
+            item.type_check(symbol_table, is_inside_function)?;
+        }
+        symbol_table.pop_block();
         Ok(())
     }
 }

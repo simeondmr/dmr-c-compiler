@@ -415,6 +415,17 @@ impl Lexer {
             }
             if c == '/' {
                 let read_value = self.file.read_exact(&mut buf);
+                if buf[0] as char == '/' {
+                    loop {
+                        let read_value = self.file.read_exact(&mut buf);
+                        if let Ok(_) = read_value {
+                            if buf[0] as char == '\n' {
+                                break;
+                            }
+                        }
+                    }
+                    continue;
+                }
                 if let Ok(_) = read_value {
                     if buf[0] as char == '=' {
                         return Ok(Token::AssignmentDivide)

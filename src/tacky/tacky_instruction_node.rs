@@ -15,6 +15,7 @@
 // along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 use std::collections::VecDeque;
+use std::fmt::DebugStruct;
 use crate::ast::asm_ast::asm_instruction_node::{ConditionCode, InstructionAsmNode};
 use crate::ast::asm_ast::asm_operand_node::OperandAsmNode;
 use crate::ast::asm_ast::asm_registers_node::Reg;
@@ -50,6 +51,11 @@ pub enum InstructionTackyNode {
     Copy {
         src: ValTackyNode,
         dest: ValTackyNode
+    },
+    FuncCall {
+        func_name: String,
+        args: Vec<ValTackyNode>,
+        ret_val: ValTackyNode
     },
     Label(u32)
 }
@@ -103,7 +109,10 @@ impl GenerateAsmInstruction<()> for InstructionTackyNode {
             InstructionTackyNode::Increment(expr) => asm_instructions.push_back(InstructionAsmNode::Inc(expr.to_asm())),
             InstructionTackyNode::Decrement(expr) => asm_instructions.push_back(InstructionAsmNode::Dec(expr.to_asm())),
             InstructionTackyNode::Copy { src, dest} => asm_instructions.push_back(InstructionAsmNode::Mov { src: src.to_asm(), dest: dest.to_asm() }),
-            InstructionTackyNode::Label(index) => asm_instructions.push_back(InstructionAsmNode::Label(*index))
+            InstructionTackyNode::Label(index) => asm_instructions.push_back(InstructionAsmNode::Label(*index)),
+            InstructionTackyNode::FuncCall { func_name: _, args: _, ret_val: _ } => {
+
+            }
         }
     }
 }
@@ -165,6 +174,9 @@ impl TackyVisitDebug for InstructionTackyNode {
             },
             InstructionTackyNode::Label(value) => {
                 println!("l{}:", value);
+            },
+            InstructionTackyNode::FuncCall { func_name, args, ret_val } => {
+                println!("FuncCall {} {:?} {:?}", func_name, args, ret_val)
             }
         }
     }

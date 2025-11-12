@@ -15,7 +15,6 @@
 // along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 pub mod program_parse;
-pub mod function_parse;
 pub mod statement_parse; 
 pub mod factor_parse;
 pub mod unop_parse;

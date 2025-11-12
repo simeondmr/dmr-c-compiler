@@ -19,19 +19,20 @@ use crate::tacky::tacky_function_node::FunctionTackyNode;
 use crate::tacky::tacky_visit_trait::{GenerateAsm, TackyVisitDebug};
 
 pub enum ProgramTackyNode {
-    ProgramDef(FunctionTackyNode)
+    ProgramDef(Vec<FunctionTackyNode>)
 }
 
 impl TackyVisitDebug for ProgramTackyNode {
     fn visit_debug(&self) {
-        let ProgramTackyNode::ProgramDef(function) = self;
-        function.visit_debug();
+        let ProgramTackyNode::ProgramDef(functions) = self;
+        functions.into_iter().for_each(|function| function.visit_debug());
     }
 }
 
 impl GenerateAsm<AsmProgramNode> for ProgramTackyNode {
     fn to_asm(&self) -> AsmProgramNode {
-        let ProgramTackyNode::ProgramDef(function) = self;
-        AsmProgramNode::ProgramAsmDef(function.to_asm())
+        todo!()
+        //let ProgramTackyNode::ProgramDef(function) = self;
+        //AsmProgramNode::ProgramAsmDef(function.to_asm())
     }
 }

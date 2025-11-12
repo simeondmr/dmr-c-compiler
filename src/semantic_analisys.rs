@@ -16,7 +16,6 @@
 
 pub mod resolve_var_expr_trait;
 pub mod program_node_semantic_analisys;
-pub mod function_node_semantic_analisys;
 pub mod block_item_node_semantic_analisys;
 pub mod declaration_node_semantic_analisys;
 pub mod expr_node_semantic_analisys;
@@ -26,3 +25,4 @@ pub mod check_goto_label_break_continue_trait;
 pub mod block_node_semantic_analisys;
 pub mod identifier_table;
 pub mod function_declaration_node_semantic_analisys;
+pub mod type_check_semantic_analisys_trait;

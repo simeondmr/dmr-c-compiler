@@ -19,6 +19,8 @@ use crate::ast::lang_ast::declaration_node::DeclarationNode;
 use crate::errors::errors::CompilerErrors;
 use crate::semantic_analisys::resolve_var_expr_trait::ResolveVarExprLabel;
 use crate::semantic_analisys::identifier_table::IdentifierTable;
+use crate::semantic_analisys::type_check_semantic_analisys_trait::TypeCheck;
+use crate::symbol_table::symbol_table::{Linkage, Symbol, SymbolInfo, SymbolTable};
 use crate::tacky::tacky_val_node::TemporaryVar;
 
 impl ResolveVarExprLabel for DeclarationNode {
@@ -32,6 +34,24 @@ impl ResolveVarExprLabel for DeclarationNode {
             }
         } else if let DeclarationNode::FunctionDeclaration(function_declaration_node) = self {
             function_declaration_node.resolve(identifier_table, label_map)?;
+        }
+        Ok(())
+    }
+}
+
+impl TypeCheck for DeclarationNode {
+    fn type_check(&self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
+        if let DeclarationNode::VariableDeclaration { var_name, var_name_index: _, init } = self {
+            symbol_table.add_local_var(Symbol {
+                name: var_name.to_string(),
+                linkage: Linkage::Internal,
+                symbol_info: SymbolInfo::Int
+            })?;
+            if let Some(expr) = init {
+                return expr.type_check(symbol_table, is_inside_function);
+            }
+        } else if let DeclarationNode::FunctionDeclaration(function_declaration_node) = self {
+            function_declaration_node.type_check(symbol_table, is_inside_function)?;
         }
         Ok(())
     }
