@@ -27,7 +27,13 @@ impl GenerateTacky<ProgramTackyNode> for ProgramNode {
     fn to_tacky(&self) -> ProgramTackyNode {
         let ProgramNode::ProgramDef(functions) = self;
         let mut functions_tacky = Vec::new();
-        functions.iter().for_each(|function| functions_tacky.push(function.to_tacky()));
+        functions.iter().for_each(|function| {
+            //Note: in order to avoid to create a FunctionTackyNode also for function prototype
+            let FunctionDeclarationNode::FunctionDef { func_name: _, params: _, block_option } = function;
+            if block_option.is_some() {
+                functions_tacky.push(function.to_tacky())
+            }
+        });
         ProgramTackyNode::ProgramDef(functions_tacky)
     }
 }
