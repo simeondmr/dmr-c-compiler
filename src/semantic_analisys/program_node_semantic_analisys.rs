@@ -45,7 +45,7 @@ impl CheckGotoLabelBreakContinue for ProgramNode {
 }
 
 impl TypeCheck for ProgramNode {
-    fn type_check(&self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
+    fn type_check(&mut self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
         let ProgramNode::ProgramDef(functions) = self;
         for function in functions {
             function.type_check(symbol_table, is_inside_function)?;

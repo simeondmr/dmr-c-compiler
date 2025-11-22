@@ -109,7 +109,7 @@ impl ResolveVarExprLabel for ForInit {
 }
 
 impl TypeCheck for ForInit {
-    fn type_check(&self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
+    fn type_check(&mut self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
         match self {
             ForInit::ExpressionInit(Some(expr_node)) => Ok(expr_node.type_check(symbol_table, is_inside_function)?),
             ForInit::ExpressionInit(None) => Ok(()),
@@ -249,7 +249,7 @@ impl CheckGotoLabelBreakContinue for StatementNode {
 }
 
 impl TypeCheck for StatementNode {
-    fn type_check(&self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
+    fn type_check(&mut self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
         match self {
             StatementNode::IfStmt { condition, stmt, else_stmt } =>  {
                 condition.type_check(symbol_table, is_inside_function)?;

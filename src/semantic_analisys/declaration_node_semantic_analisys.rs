@@ -26,9 +26,11 @@ use crate::tacky::tacky_val_node::TemporaryVar;
 impl ResolveVarExprLabel for DeclarationNode {
     fn resolve(&mut self, identifier_table: &mut IdentifierTable, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
         if let DeclarationNode::VariableDeclaration { var_name, var_name_index, init } = self {
-            let new_var_name_index = TemporaryVar::generate();
-            identifier_table.new_local_variable(var_name.to_string(), new_var_name_index)?;
-            *var_name_index = new_var_name_index;
+            if *var_name_index == 0 {
+                let new_var_name_index = TemporaryVar::generate();
+                identifier_table.new_local_variable(var_name.to_string(), new_var_name_index)?;
+                //*var_name_index = new_var_name_index;
+            }
             if let Some(expr) = init {
                 return expr.resolve(identifier_table, label_map);
             }
@@ -40,7 +42,7 @@ impl ResolveVarExprLabel for DeclarationNode {
 }
 
 impl TypeCheck for DeclarationNode {
-    fn type_check(&self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
+    fn type_check(&mut self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
         if let DeclarationNode::VariableDeclaration { var_name, var_name_index: _, init } = self {
             symbol_table.add_local_var(Symbol {
                 name: var_name.to_string(),

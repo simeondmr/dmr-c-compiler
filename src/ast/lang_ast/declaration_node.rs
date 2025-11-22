@@ -18,7 +18,7 @@ use crate::ast::lang_ast::expr_node::ExprNode;
 use crate::ast::lang_ast::function_declaration_node::FunctionDeclarationNode;
 use crate::ast::lang_ast::lang_ast_visit_trait::{AstDebugPrinter, GenerateTackyInstructions};
 use crate::tacky::tacky_instruction_node::InstructionTackyNode;
-use crate::tacky::tacky_val_node::ValTackyNode;
+use crate::tacky::tacky_val_node::{TemporaryVar, ValTackyNode};
 
 #[derive(Debug)]
 pub enum DeclarationNode {
@@ -33,9 +33,9 @@ pub enum DeclarationNode {
 impl GenerateTackyInstructions<()> for DeclarationNode {
     fn to_tacky(&self, tacky_instructions: &mut Vec<InstructionTackyNode>) -> () {
         // Note: if the declaration is without an initializzation expression, there nothing to do in tacky generation
-        if let DeclarationNode::VariableDeclaration { var_name: _, var_name_index, init: Some(init_expr) } = self {
+        if let DeclarationNode::VariableDeclaration { var_name: _, var_name_index: _, init: Some(init_expr) } = self {
             let init_expr_tacky = init_expr.to_tacky(tacky_instructions);
-            tacky_instructions.push(InstructionTackyNode::Copy { src: init_expr_tacky, dest: ValTackyNode::Var(*var_name_index)});
+            tacky_instructions.push(InstructionTackyNode::Copy { src: init_expr_tacky, dest: ValTackyNode::Var(TemporaryVar::generate()) });
         }
     }
 }

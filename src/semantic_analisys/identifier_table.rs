@@ -49,6 +49,7 @@ impl IdentifierInfo {
     }
 }
 
+#[derive(Debug)]
 pub struct IdentifierTable {
     block_stack: Vec<HashMap<String, IdentifierInfo>>
 }

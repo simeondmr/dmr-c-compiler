@@ -18,14 +18,14 @@ use crate::ast::asm_ast::asm_ast_visit_trait::AstAsmDebugPrinter;
 use crate::ast::asm_ast::asm_function_node::FunctionAsmNode;
 
 pub enum AsmProgramNode {
-    ProgramAsmDef(FunctionAsmNode)
+    ProgramAsmDef(Vec<FunctionAsmNode>)
 }
 
 impl AstAsmDebugPrinter for AsmProgramNode {
     fn debug_visit(&self) {
-        let AsmProgramNode::ProgramAsmDef(function) = self;
+        let AsmProgramNode::ProgramAsmDef(functions) = self;
         println!("Program(");
-        function.debug_visit();
+        functions.into_iter().for_each(|function| { function.debug_visit(); });
         println!(")");
     }
 }

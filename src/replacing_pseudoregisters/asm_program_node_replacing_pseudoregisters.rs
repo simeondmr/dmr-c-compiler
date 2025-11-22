@@ -19,8 +19,11 @@ use crate::ast::asm_ast::asm_program_node::AsmProgramNode;
 use crate::codegen::stack_alloc_table::StackAllocTable;
 
 impl AsmReplacingPseudoregisters for AsmProgramNode {
-    fn replacing_pseudoregisters(&mut self, stack_alloc_table: &mut StackAllocTable) -> i32 {
-        let AsmProgramNode::ProgramAsmDef(function) = self;
-        function.replacing_pseudoregisters(stack_alloc_table)
+    fn replacing_pseudoregisters(&mut self, stack_alloc_table: &mut StackAllocTable) {
+        let AsmProgramNode::ProgramAsmDef(functions) = self;
+        functions.into_iter().for_each(|function| {
+            function.replacing_pseudoregisters(stack_alloc_table);
+            stack_alloc_table.reset();
+        });
     }
 }

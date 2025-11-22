@@ -21,7 +21,10 @@ use crate::codegen::asm_codegen_trait::Codegen;
 
 impl Codegen for AsmProgramNode {
     fn codegen(&self, output_file: &mut File) -> Result<(), Error> {
-        let AsmProgramNode::ProgramAsmDef(function) = self;
-        Ok(function.codegen(output_file)?)
+        let AsmProgramNode::ProgramAsmDef(functions) = self;
+        for function in functions {
+            function.codegen(output_file)?;
+        }
+        Ok(())
     }
 }

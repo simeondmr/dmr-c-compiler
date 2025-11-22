@@ -60,4 +60,12 @@ impl TemporaryVar {
     pub fn generate() -> u32 {
         COUNTER.fetch_add(1, Ordering::Relaxed) + 1
     }
+
+    pub fn start_from(value: u32) {
+        COUNTER.store(value, Ordering::Relaxed);
+    }
+
+    pub fn reset() {
+        COUNTER.store(0, Ordering::Relaxed);
+    }
 }

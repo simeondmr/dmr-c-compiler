@@ -27,17 +27,12 @@ pub trait AsmReplacingPseudoregisters {
     ///
     /// # Arguments
     /// * stack_alloc_table - The stack allocation table for Pseudo registers memory mapping
-    ///
-    /// # Returns
-    /// Return the function's stack offset
-    fn replacing_pseudoregisters(&mut self, stack_alloc_table: &mut StackAllocTable) -> i32;
+    fn replacing_pseudoregisters(&mut self, stack_alloc_table: &mut StackAllocTable);
 }
 
 /// This trait provides a method for fixing the assembly tree instructions and add the stack allocation at the beginning of instructions
 /// For example if this method meet an instructions like: movl [stack_operand], [stack_operand] it will fix them in order to avoid to have 2 memory operand
 pub trait FixingInstruction {
     /// Fix the assembly instructions from the assembly tree
-    /// # Argument
-    /// * stack_offset - Number of bytes for stack allocation
-    fn fixing_instructions(&mut self, stack_offset: i32);
+    fn fixing_instructions(&mut self);
 }

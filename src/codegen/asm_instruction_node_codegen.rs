@@ -49,6 +49,7 @@ impl Codegen for InstructionAsmNode {
             },
             InstructionAsmNode::Cdq => Ok(output_file.write_all("\tcdq\n".as_bytes())?),
             InstructionAsmNode::AllocateStack(stack_offet) => Ok(output_file.write_all(format!("\tsubq ${}, %rsp\n", stack_offet.abs()).as_bytes())?),
+            InstructionAsmNode::DeallocateStack(size) => Ok(output_file.write_all(format!("\taddq ${}, %rsp\n", size).as_bytes())?),
             InstructionAsmNode::Cmp(operand0, operand1) => {
                 output_file.write_all("\tcmpl ".as_bytes())?;
                 operand0.codegen(output_file)?;
@@ -77,7 +78,14 @@ impl Codegen for InstructionAsmNode {
                 operand.codegen(output_file)?;
                 Ok(output_file.write_all("\n".as_bytes())?)
             },
-            InstructionAsmNode::Label(index) => Ok(output_file.write_all(format!(".l{}:\n", index).as_bytes())?),
+            InstructionAsmNode::Push(operand) => {
+                output_file.write_all("\tpushq ".as_bytes())?;
+                operand.codegen(output_file)?;
+                Ok(output_file.write_all("\n".as_bytes())?)
+            },
+            InstructionAsmNode::Call { func_name, has_body} => Ok(output_file.write_all(format!("\tcall {func_name}{}\n", if !has_body { "@PLT" } else { "" }).as_bytes())?),
+            InstructionAsmNode::LinuxExitSyscall => Ok(output_file.write_all("\tmovq $60, %rax\n\tsyscall\n".as_bytes())?),
+            InstructionAsmNode::Label(index) => Ok(output_file.write_all(format!(".l{index}:\n").as_bytes())?),
             InstructionAsmNode::Ret => {
                 output_file.write_all("\tmovq %rbp, %rsp\n".as_bytes())?;
                 output_file.write_all("\tpopq %rbp\n".as_bytes())?;

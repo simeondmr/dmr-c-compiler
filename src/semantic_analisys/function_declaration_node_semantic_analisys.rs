@@ -25,6 +25,7 @@ use crate::semantic_analisys::resolve_var_expr_trait::ResolveVarExprLabel;
 use crate::semantic_analisys::identifier_table::IdentifierTable;
 use crate::semantic_analisys::type_check_semantic_analisys_trait::TypeCheck;
 use crate::symbol_table::symbol_table::{Linkage, Symbol, SymbolInfo, SymbolTable};
+use crate::tacky::tacky_val_node::TemporaryVar;
 
 impl ResolveVarExprLabel for FunctionDeclarationNode {
     fn resolve(&mut self, identifier_table: &mut IdentifierTable, label_map: &mut HashMap<String, u32>) -> Result<(), CompilerErrors> {
@@ -33,11 +34,16 @@ impl ResolveVarExprLabel for FunctionDeclarationNode {
         if let Some(block) = block_option {
             let BlockNode::Item(block_item_node) = block;
             //Note: function variable params must be in the same function block
-            for param in params.iter().rev() {
-                block_item_node.push_front(BlockItemNode::Declaration(DeclarationNode::VariableDeclaration { var_name: param.to_string(), var_name_index: 0, init: None }))
+            identifier_table.push_block();
+            for param in params.iter() {
+                let arg_temporary_var = TemporaryVar::generate();
+                identifier_table.new_local_variable(param.to_string(), arg_temporary_var)?;
+                block_item_node.push_front(BlockItemNode::Declaration(DeclarationNode::VariableDeclaration { var_name: param.to_string(), var_name_index: arg_temporary_var, init: None }))
             }
             block.resolve(identifier_table, label_map)?;
+            identifier_table.pop_block();
         }
+        TemporaryVar::reset();
         //Note: in case of function without a body, for example during a function prototype declaration there is nothing to do
         Ok(())
     }
@@ -55,7 +61,7 @@ impl CheckGotoLabelBreakContinue for FunctionDeclarationNode {
 }
 
 impl TypeCheck for FunctionDeclarationNode {
-    fn type_check(&self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
+    fn type_check(&mut self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
         let FunctionDeclarationNode::FunctionDef { func_name, params,  block_option } = self;
         symbol_table.add_func_decl(Symbol {
             name: func_name.to_string(),

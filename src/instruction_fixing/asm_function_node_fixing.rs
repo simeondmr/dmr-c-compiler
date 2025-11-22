@@ -22,9 +22,12 @@ use crate::ast::asm_ast::asm_operand_node::OperandAsmNode;
 use crate::ast::asm_ast::asm_registers_node::{RcxReg, Reg};
 
 impl FixingInstruction for FunctionAsmNode {
-    fn fixing_instructions(&mut self, stack_offset: i32) {
-        let FunctionAsmNode::FunctionAsmDef { func_name: _, ref mut asm_instructions } = self;
-        asm_instructions.insert(0, InstructionAsmNode::AllocateStack(stack_offset));
+    fn fixing_instructions(&mut self) {
+        let FunctionAsmNode::FunctionAsmDef { func_name: _, stack_alloc_size, ref mut asm_instructions } = self;
+        if *stack_alloc_size != 0 {
+            //Note this the stack alloc for function prologue with alignment(remember that in System V ABI, the  stack must be 16-byte aligned)
+            asm_instructions.insert(0, InstructionAsmNode::AllocateStack(*stack_alloc_size + (*stack_alloc_size % 16)));
+        }
         let mut instruction_index= 0;
         while instruction_index < asm_instructions.len() {
             let current_instruction = asm_instructions.get(instruction_index).cloned();
@@ -66,6 +69,11 @@ impl FixingInstruction for FunctionAsmNode {
                     // Note: cmp instruction cannot have an immediate value in the right operand
                     asm_instructions[instruction_index] = InstructionAsmNode::Mov { src: OperandAsmNode::Imm(value), dest: OperandAsmNode::Register(Reg::R11) };
                     asm_instructions.insert(instruction_index + 1, InstructionAsmNode::Cmp(operand0, OperandAsmNode::Register(Reg::R11)));
+                    instruction_index += 2;
+                },
+                Some(InstructionAsmNode::Push(OperandAsmNode::Stack(offset))) => {
+                    asm_instructions[instruction_index] = InstructionAsmNode::Mov { src: OperandAsmNode::Stack(offset), dest: OperandAsmNode::Register(Reg::R10) };
+                    asm_instructions.insert(instruction_index + 1, InstructionAsmNode::Push(OperandAsmNode::Register(Reg::R10)));
                     instruction_index += 2;
                 },
                 _ => instruction_index += 1

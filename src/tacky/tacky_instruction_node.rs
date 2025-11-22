@@ -13,12 +13,11 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <https://www.gnu.org/licenses/>.
-
 use std::collections::VecDeque;
-use std::fmt::DebugStruct;
 use crate::ast::asm_ast::asm_instruction_node::{ConditionCode, InstructionAsmNode};
 use crate::ast::asm_ast::asm_operand_node::OperandAsmNode;
-use crate::ast::asm_ast::asm_registers_node::Reg;
+use crate::ast::asm_ast::asm_operand_node::OperandAsmNode::Register;
+use crate::ast::asm_ast::asm_registers_node::{RaxReg, RcxReg, Reg};
 use crate::tacky::binary_operator_tacky_node::BinaryOperatorTackyNode;
 use crate::tacky::tacky_unary_operator_node::UnaryOperatorTackyNode;
 use crate::tacky::tacky_val_node::ValTackyNode;
@@ -55,7 +54,8 @@ pub enum InstructionTackyNode {
     FuncCall {
         func_name: String,
         args: Vec<ValTackyNode>,
-        ret_val: ValTackyNode
+        ret_val: ValTackyNode,
+        has_body: bool
     },
     Label(u32)
 }
@@ -64,7 +64,7 @@ impl GenerateAsmInstruction<()> for InstructionTackyNode {
     fn to_asm(&self, asm_instructions: &mut VecDeque<InstructionAsmNode>) -> () {
         match self {
             InstructionTackyNode::Return(val) =>  {
-                asm_instructions.push_back(InstructionAsmNode::Mov{ src: val.to_asm(), dest: OperandAsmNode::Register(Reg::AX) });
+                asm_instructions.push_back(InstructionAsmNode::Mov{ src: val.to_asm(), dest: OperandAsmNode::Register(Reg::AX(RaxReg::EAX)) });
                 asm_instructions.push_back(InstructionAsmNode::Ret);
             },
             InstructionTackyNode::Unary { unary_operator, src, dest } if matches!(unary_operator, UnaryOperatorTackyNode::Not) => {
@@ -78,11 +78,11 @@ impl GenerateAsmInstruction<()> for InstructionTackyNode {
                 asm_instructions.push_back(InstructionAsmNode::Unary { operator: unary_operator.to_asm(), operand: asm_dest_val });
             },
             InstructionTackyNode::Binary { binary_operator, left_expr, right_expr, dest } if matches!(binary_operator, BinaryOperatorTackyNode::Divide | BinaryOperatorTackyNode::Remainder) => {
-                asm_instructions.push_back(InstructionAsmNode::Mov { src: left_expr.to_asm(), dest: OperandAsmNode::Register(Reg::AX) });
+                asm_instructions.push_back(InstructionAsmNode::Mov { src: left_expr.to_asm(), dest: OperandAsmNode::Register(Reg::AX(RaxReg::EAX)) });
                 asm_instructions.push_back(InstructionAsmNode::Cdq);
                 asm_instructions.push_back(InstructionAsmNode::Idiv(right_expr.to_asm()));
                 if let BinaryOperatorTackyNode::Divide = binary_operator {
-                    asm_instructions.push_back(InstructionAsmNode::Mov { src: OperandAsmNode::Register(Reg::AX), dest: dest.to_asm() });
+                    asm_instructions.push_back(InstructionAsmNode::Mov { src: OperandAsmNode::Register(Reg::AX(RaxReg::EAX)), dest: dest.to_asm() });
                 } else {
                     asm_instructions.push_back(InstructionAsmNode::Mov { src: OperandAsmNode::Register(Reg::DX), dest: dest.to_asm() });
                 }
@@ -110,8 +110,35 @@ impl GenerateAsmInstruction<()> for InstructionTackyNode {
             InstructionTackyNode::Decrement(expr) => asm_instructions.push_back(InstructionAsmNode::Dec(expr.to_asm())),
             InstructionTackyNode::Copy { src, dest} => asm_instructions.push_back(InstructionAsmNode::Mov { src: src.to_asm(), dest: dest.to_asm() }),
             InstructionTackyNode::Label(index) => asm_instructions.push_back(InstructionAsmNode::Label(*index)),
-            InstructionTackyNode::FuncCall { func_name: _, args: _, ret_val: _ } => {
-
+            InstructionTackyNode::FuncCall { func_name, args, ret_val, has_body } => {
+                let arg_registers = [Reg::DI, Reg::SI, Reg::DX, Reg::CX(RcxReg::ECX), Reg::R8, Reg::R9];
+                let registers_len = arg_registers.len();
+                let mut padding = 0;
+                let param_stack_len = (args.len().saturating_sub(arg_registers.len())) as u64;
+                if param_stack_len > 0 && param_stack_len % 2 != 0 {
+                    padding = 8;
+                    asm_instructions.push_back(InstructionAsmNode::AllocateStack(padding));
+                }
+                //Note: put args in registers
+                for i in 0..args.len() as u64 - param_stack_len {
+                    asm_instructions.push_back(InstructionAsmNode::Mov { src: args[i as usize].to_asm(), dest: OperandAsmNode::Register(arg_registers[i as usize].clone()) });
+                }
+                //Note: put remaining args into stack
+                for i in (0..param_stack_len).rev() {
+                    let arg_asm = args[registers_len + i  as usize].to_asm();
+                    if let OperandAsmNode::Imm(_) = arg_asm {
+                        asm_instructions.push_back(InstructionAsmNode::Push(arg_asm));
+                    } else {
+                        asm_instructions.push_back(InstructionAsmNode::Mov { src: arg_asm, dest: Register(Reg::AX(RaxReg::EAX)) });
+                        asm_instructions.push_back(InstructionAsmNode::Push(Register(Reg::AX(RaxReg::RAX))));
+                    }
+                }
+                asm_instructions.push_back(InstructionAsmNode::Call { func_name: func_name.clone(), has_body: *has_body });
+                let byte_to_remove_sp = padding as u64 + 8 * param_stack_len;
+                if byte_to_remove_sp > 0 {
+                    asm_instructions.push_back(InstructionAsmNode::DeallocateStack(byte_to_remove_sp));
+                }
+                asm_instructions.push_back(InstructionAsmNode::Mov { src: Register(Reg::AX(RaxReg::EAX)), dest: ret_val.to_asm() });
             }
         }
     }
@@ -175,7 +202,7 @@ impl TackyVisitDebug for InstructionTackyNode {
             InstructionTackyNode::Label(value) => {
                 println!("l{}:", value);
             },
-            InstructionTackyNode::FuncCall { func_name, args, ret_val } => {
+            InstructionTackyNode::FuncCall { func_name, args, ret_val, has_body: _ } => {
                 println!("FuncCall {} {:?} {:?}", func_name, args, ret_val)
             }
         }

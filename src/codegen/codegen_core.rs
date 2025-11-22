@@ -26,7 +26,7 @@ pub struct CodegenCore<'a> {
 }
 
 impl <'a> CodegenCore<'a> {
-    pub fn new(output_path: &Path) -> CodegenCore {
+    pub fn new(output_path: &Path) -> CodegenCore<'_> {
         CodegenCore {
             output_path,
         }
@@ -34,8 +34,8 @@ impl <'a> CodegenCore<'a> {
 
     pub fn codegen(&self, asm_ast: &mut AsmProgramNode)-> std::io::Result<()>  {
         let mut stack_alloc_table = StackAllocTable::new();
-        let stack_offset = asm_ast.replacing_pseudoregisters(&mut stack_alloc_table);
-        asm_ast.fixing_instructions(stack_offset);
+        asm_ast.replacing_pseudoregisters(&mut stack_alloc_table);
+        asm_ast.fixing_instructions();
         let mut output_file = File::create(self.output_path)?;
         asm_ast.codegen(&mut output_file)
     }

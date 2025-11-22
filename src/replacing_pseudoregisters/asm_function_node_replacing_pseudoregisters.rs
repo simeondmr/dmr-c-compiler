@@ -19,9 +19,11 @@ use crate::ast::asm_ast::asm_function_node::FunctionAsmNode;
 use crate::codegen::stack_alloc_table::StackAllocTable;
 
 impl AsmReplacingPseudoregisters for FunctionAsmNode {
-    fn replacing_pseudoregisters(&mut self, stack_alloc_table: &mut StackAllocTable) -> i32 {
-        let FunctionAsmNode::FunctionAsmDef { func_name: _, ref mut asm_instructions } = self;
-        asm_instructions.iter_mut().for_each(|instruction| { instruction.replacing_pseudoregisters(stack_alloc_table); });
-        stack_alloc_table.stack_offset()
+    fn replacing_pseudoregisters(&mut self, stack_alloc_table: &mut StackAllocTable) {
+        let FunctionAsmNode::FunctionAsmDef { func_name: _, stack_alloc_size, ref mut asm_instructions } = self;
+        asm_instructions.iter_mut().for_each(|instruction| instruction.replacing_pseudoregisters(stack_alloc_table));
+        let byte_to_allocate = stack_alloc_table.stack_offset();
+        //Note this the stack alloc for function prologue with alignment(remember that in System V ABI, the  stack must be 16-byte aligned)
+        *stack_alloc_size = byte_to_allocate + (byte_to_allocate % 16);
     }
 }

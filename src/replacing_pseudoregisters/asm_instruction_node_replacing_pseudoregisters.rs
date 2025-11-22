@@ -30,7 +30,7 @@ impl InstructionAsmNode {
 }
 
 impl AsmReplacingPseudoregisters for InstructionAsmNode {
-    fn replacing_pseudoregisters(&mut self, stack_alloc_table: &mut StackAllocTable) -> i32 {
+    fn replacing_pseudoregisters(&mut self, stack_alloc_table: &mut StackAllocTable) {
         match self {
             InstructionAsmNode::Mov { src, dest } | InstructionAsmNode::Binary { operator: _, src, dest } => {
                 let src_replaced = InstructionAsmNode::replace_pseudoregister(src, stack_alloc_table);
@@ -66,8 +66,8 @@ impl AsmReplacingPseudoregisters for InstructionAsmNode {
                     *self = InstructionAsmNode::Dec(operand_replaced);
                 }
             },
-            _ => return 0
+            _ => { }
         }
-        0
+
     }
 }

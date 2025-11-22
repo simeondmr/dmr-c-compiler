@@ -20,6 +20,7 @@ use crate::ast::asm_ast::asm_operand_node::OperandAsmNode;
 use crate::ast::asm_ast::asm_unary_operator_node::AsmUnaryOperatorNode;
 
 #[derive(Clone)]
+#[allow(dead_code)]
 pub enum InstructionAsmNode {
     Mov {
         src: OperandAsmNode,
@@ -37,6 +38,7 @@ pub enum InstructionAsmNode {
     Idiv(OperandAsmNode),
     Cdq,
     AllocateStack(i32),
+    DeallocateStack(u64),
     Cmp(OperandAsmNode, OperandAsmNode),
     Jmp(u32),
     JmpCC {
@@ -49,6 +51,12 @@ pub enum InstructionAsmNode {
     },
     Inc(OperandAsmNode),
     Dec(OperandAsmNode),
+    Push(OperandAsmNode),
+    Call {
+        func_name: String,
+        has_body: bool
+    },
+    LinuxExitSyscall,
     Label(u32),
     Ret
 }
@@ -105,12 +113,16 @@ impl AstAsmDebugPrinter for InstructionAsmNode {
             },
             InstructionAsmNode::Cdq => println!("cdq"),
             InstructionAsmNode::AllocateStack(stack_offet) => println!("AllocateStack {}", *stack_offet),
+            InstructionAsmNode::DeallocateStack(size) => println!("DeallocateStack {}", *size),
             InstructionAsmNode::JmpCC { condition_code, jmp_label_target} => println!("JmpCC{:?} .l{}", condition_code, jmp_label_target),
             InstructionAsmNode::Cmp(val0, val1) => println!("Cmp {:?} {:?}", val0, val1),
             InstructionAsmNode::Jmp(jmp_label_target) => println!("Jmp .l{}", jmp_label_target),
             InstructionAsmNode::Set { condition_code, dest } => println!("set{:?} {:?}", condition_code, dest),
             InstructionAsmNode::Inc(operand) => println!("inc {:?}", operand),
             InstructionAsmNode::Dec(operand) => println!("dec {:?}", operand),
+            InstructionAsmNode::Push(operand) => println!("push {:?}", operand),
+            InstructionAsmNode::Call { func_name, has_body} => println!("call {func_name} {has_body}"),
+            InstructionAsmNode::LinuxExitSyscall => println!("LinuxExitSyscall"),
             InstructionAsmNode::Label(index) => println!(".l{}:", index),
             InstructionAsmNode::Ret => println!("Ret")
 

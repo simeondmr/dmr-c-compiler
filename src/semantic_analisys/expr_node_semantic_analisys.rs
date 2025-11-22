@@ -54,7 +54,7 @@ impl ResolveVarExprLabel for ExprNode {
                 }
                 Ok(())
             },
-            ExprNode::FunctionCall { name, args } => {
+            ExprNode::FunctionCall { name, args, has_body: _ } => {
                 let _ = identifier_table.ext_identifier(name.to_string())?;
                 for arg in args {
                     arg.resolve(identifier_table, label_map)?;
@@ -66,7 +66,7 @@ impl ResolveVarExprLabel for ExprNode {
 }
 
 impl TypeCheck for ExprNode {
-    fn type_check(&self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
+    fn type_check(&mut self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
         match self {
             ExprNode::Constant(_) => Ok(()),
             ExprNode::Unary { unary_operator: _, expr } => expr.type_check(symbol_table, is_inside_function),
@@ -87,11 +87,13 @@ impl TypeCheck for ExprNode {
             ExprNode::Var { var_name, var_name_index: _ } => {
                 symbol_table.is_var(var_name)
             },
-            ExprNode::FunctionCall { name, args } => {
-                for arg in args {
+            ExprNode::FunctionCall { name, args, has_body } => {
+                for arg in &mut *args {
                     arg.type_check(symbol_table, is_inside_function)?;
                 }
-                symbol_table.is_func(name, args.len())
+                let is_func = symbol_table.is_func(name, args.len())?;
+                *has_body = is_func;
+                Ok(())
             }
         }
     }

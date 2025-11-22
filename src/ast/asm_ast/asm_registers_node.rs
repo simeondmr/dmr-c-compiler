@@ -18,11 +18,15 @@ use crate::ast::asm_ast::asm_ast_visit_trait::AstAsmDebugPrinter;
 
 #[derive(Clone, Debug)]
 pub enum Reg {
-    AX,
+    AX(RaxReg),
     CX(RcxReg),
     DX,
+    R8,
+    R9,
     R10,
-    R11
+    R11,
+    DI,
+    SI,
 }
 
 #[derive(Clone, Debug)]
@@ -31,14 +35,26 @@ pub enum RcxReg {
     ECX
 }
 
+#[derive(Clone, Debug)]
+#[allow(dead_code)]
+pub enum RaxReg {
+    XL,
+    EAX,
+    RAX
+}
+
 impl AstAsmDebugPrinter for Reg {
     fn debug_visit(&self) {
         match self {
-            Reg::AX => print!("AX"),
+            Reg::AX(rax_reg) => print!("{:?}", rax_reg),
             Reg::CX(part) => print!("{:?}", part),
             Reg::DX => print!("DX"),
+            Reg::R8 => print!("R8"),
+            Reg::R9 => print!("R9"),
             Reg::R10 => print!("R10"),
-            Reg::R11 => print!("R11")
+            Reg::R11 => print!("R11"),
+            Reg::DI => print!("DI"),
+            Reg::SI => print!("SI")
         }
     }
 }

@@ -34,13 +34,18 @@ impl StackAllocTable {
         if let Some(address) = pseudoregister_info {
             return *address;
         }
+        self.stack_offset -= 4;
         self.pseudoregisters_address.insert(pseudoregister_value, self.stack_offset);
         let pseudoregister_value = self.stack_offset;
-        self.stack_offset -= 4;
         pseudoregister_value
     }
     
     pub fn stack_offset(&self) -> i32 {
         self.stack_offset
+    }
+    
+    pub fn reset(&mut self) {
+        self.stack_offset = 0;
+        self.pseudoregisters_address.clear();
     }
 }

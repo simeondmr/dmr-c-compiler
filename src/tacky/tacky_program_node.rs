@@ -31,8 +31,9 @@ impl TackyVisitDebug for ProgramTackyNode {
 
 impl GenerateAsm<AsmProgramNode> for ProgramTackyNode {
     fn to_asm(&self) -> AsmProgramNode {
-        todo!()
-        //let ProgramTackyNode::ProgramDef(function) = self;
-        //AsmProgramNode::ProgramAsmDef(function.to_asm())
+        let ProgramTackyNode::ProgramDef(functions_tacky_node) = self;
+        let mut asm_functions = Vec::new();
+        functions_tacky_node.into_iter().for_each(|function_tacky_node| asm_functions.push(function_tacky_node.to_asm()));
+        AsmProgramNode::ProgramAsmDef(asm_functions)
     }
 }

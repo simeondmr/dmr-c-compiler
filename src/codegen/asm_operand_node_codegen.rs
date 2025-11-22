@@ -25,7 +25,7 @@ impl Codegen for OperandAsmNode {
             OperandAsmNode::Imm(value) => Ok(output_file.write_all(format!("${}", value).as_bytes())?),
             OperandAsmNode::Register(reg) => reg.codegen(output_file),
             OperandAsmNode::Pseudo(value) => Ok(output_file.write_all(format!("t{}", value).as_bytes())?),
-            OperandAsmNode::Stack(value) => Ok(output_file.write_all(format!("{}(%rsp)", value).as_bytes())?),
+            OperandAsmNode::Stack(value) => Ok(output_file.write_all(format!("{}(%rbp)", value).as_bytes())?),
             _ => { 
                 // Note: this code will never be executed so, for Empty case there is nothing to do
                 Ok(())

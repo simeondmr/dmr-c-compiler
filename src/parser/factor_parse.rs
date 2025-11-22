@@ -80,7 +80,7 @@ impl GrammarProductionParsing<ExprNode> for FactorParse {
                         }
                     }
                     lexer.next_token()?;
-                    Ok(ExprNode::FunctionCall { name: identifier.to_string(), args })
+                    Ok(ExprNode::FunctionCall { name: identifier.to_string(), args, has_body: false })
                 } else {
                     // Note: During the parsing stage put 0 as identifier_index for every variable. During variable resolution pass the field identifier_index will be fixed with the correct value
                     Ok(ExprNode::Var { var_name: identifier.to_string(), var_name_index: 0 })

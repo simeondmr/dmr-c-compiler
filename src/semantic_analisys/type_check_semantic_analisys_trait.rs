@@ -18,5 +18,5 @@ use crate::errors::errors::CompilerErrors;
 use crate::symbol_table::symbol_table::SymbolTable;
 
 pub trait TypeCheck {
-    fn type_check(&self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors>;
+    fn type_check(&mut self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors>;
 }

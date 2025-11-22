@@ -45,7 +45,7 @@ impl CheckGotoLabelBreakContinue for BlockItemNode {
 }
 
 impl TypeCheck for BlockItemNode {
-    fn type_check(&self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
+    fn type_check(&mut self, symbol_table: &mut SymbolTable, is_inside_function: bool) -> Result<(), CompilerErrors> {
         if let BlockItemNode::Statement(statement_node) = self {
             return statement_node.type_check(symbol_table, is_inside_function);
         } else if let BlockItemNode::Declaration(declaration_node) = self {

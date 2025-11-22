@@ -17,6 +17,7 @@
 use crate::ast::lang_ast::block_node::BlockNode;
 use crate::ast::lang_ast::lang_ast_visit_trait::{AstDebugPrinter, GenerateTacky, GenerateTackyInstructions};
 use crate::tacky::tacky_function_node::FunctionTackyNode;
+use crate::tacky::tacky_val_node::TemporaryVar;
 
 #[derive(Debug)]
 pub enum FunctionDeclarationNode {
@@ -31,8 +32,10 @@ impl GenerateTacky<FunctionTackyNode> for FunctionDeclarationNode {
     fn to_tacky(&self) -> FunctionTackyNode {
         let FunctionDeclarationNode::FunctionDef { func_name, params, block_option } = self;
         let mut tacky_instructions = Vec::new();
+        TemporaryVar::start_from(params.len() as u32);
         if let Some(block) = block_option {
             block.to_tacky(&mut tacky_instructions);
+            TemporaryVar::reset();
         }
         FunctionTackyNode::FunctionDef { func_name: func_name.to_string(), params: params.to_vec(), tacky_instructions }
     }
