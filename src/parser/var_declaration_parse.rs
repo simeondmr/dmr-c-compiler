@@ -21,9 +21,7 @@ use crate::lexer::lexer::{Lexer, Token};
 use crate::parser::expr_parse::ExprParse;
 use crate::parser::program_parse::{GrammarProductionParsing, PrecedenceClimbingParsing};
 
-pub struct VarDeclarationParse {
-
-}
+pub struct VarDeclarationParse;
 
 impl VarDeclarationParse {
     pub fn new() -> VarDeclarationParse {
@@ -46,6 +44,6 @@ impl GrammarProductionParsing<DeclarationNode> for VarDeclarationParse {
         }
         Self::match_token(&Token::Semicolon, lexer)?;
         // Note: During the parsing stage put 0 as var_name_index for every variable. During variable resolution pass the field identifier_index will be fixed with the correct value
-        Ok(DeclarationNode::VariableDeclaration { var_name: var_name.extract_literal_val().unwrap(), var_name_index: 0, init })
+        Ok(DeclarationNode::VariableDeclaration { var_name: var_name.extract_literal_val().unwrap(), init })
     }
 }

@@ -22,9 +22,12 @@ use crate::codegen::asm_codegen_trait::Codegen;
 impl Codegen for FunctionAsmNode {
     fn codegen(&self, output_file: &mut File) -> Result<(), Error> {
         let FunctionAsmNode::FunctionAsmDef { func_name, stack_alloc_size: _, ref asm_instructions } = self;
-        let mut func_name = func_name.clone();
         if func_name.eq("main") {
-            func_name = "_start".to_string();
+            output_file.write_all(format!(".globl _start\n_start:\n").as_bytes())?;
+            output_file.write_all(format!("\tcall main\n").as_bytes())?;
+            output_file.write_all(format!("\tmovq %rax, %rdi\n").as_bytes())?;
+            output_file.write_all(format!("\tmovq $60, %rax\n").as_bytes())?;
+            output_file.write_all(format!("\tsyscall\n").as_bytes())?;
         }
         output_file.write_all(format!(".globl {}\n", func_name).as_bytes())?;
         output_file.write_all(format!("{}:\n", func_name).as_bytes())?;

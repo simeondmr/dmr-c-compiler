@@ -34,14 +34,10 @@ impl ResolveVarExprLabel for FunctionDeclarationNode {
         if let Some(block) = block_option {
             let BlockNode::Item(block_item_node) = block;
             //Note: function variable params must be in the same function block
-            identifier_table.push_block();
-            for param in params.iter() {
-                let arg_temporary_var = TemporaryVar::generate();
-                identifier_table.new_local_variable(param.to_string(), arg_temporary_var)?;
-                block_item_node.push_front(BlockItemNode::Declaration(DeclarationNode::VariableDeclaration { var_name: param.to_string(), var_name_index: arg_temporary_var, init: None }))
+            for param in params.iter().rev() {
+                block_item_node.push_front(BlockItemNode::Declaration(DeclarationNode::VariableDeclaration { var_name: param.to_string(), init: None }))
             }
             block.resolve(identifier_table, label_map)?;
-            identifier_table.pop_block();
         }
         TemporaryVar::reset();
         //Note: in case of function without a body, for example during a function prototype declaration there is nothing to do
