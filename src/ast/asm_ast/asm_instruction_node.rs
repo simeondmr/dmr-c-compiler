@@ -13,11 +13,10 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <https://www.gnu.org/licenses/>.
-
-use crate::ast::asm_ast::asm_ast_visit_trait::AstAsmDebugPrinter;
 use crate::ast::asm_ast::asm_binary_operator_node::AsmBinaryOperatorNode;
 use crate::ast::asm_ast::asm_operand_node::OperandAsmNode;
 use crate::ast::asm_ast::asm_unary_operator_node::AsmUnaryOperatorNode;
+use crate::ast::lang_ast::lang_ast_visit_trait::AstDebugPrinter;
 
 #[derive(Clone)]
 #[allow(dead_code)]
@@ -85,7 +84,7 @@ impl ConditionCode {
     }
 }
 
-impl AstAsmDebugPrinter for InstructionAsmNode {
+impl AstDebugPrinter for InstructionAsmNode {
     fn debug_visit(&self) {
         match self {
             InstructionAsmNode::Mov { src, dest } => {

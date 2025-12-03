@@ -16,7 +16,8 @@
 
 use crate::ast::asm_ast::asm_binary_operator_node::AsmBinaryOperatorNode;
 use crate::ast::asm_ast::asm_instruction_node::ConditionCode;
-use crate::tacky::tacky_visit_trait::{GenerateAsm, TackyVisitDebug};
+use crate::ast::lang_ast::lang_ast_visit_trait::AstDebugPrinter;
+use crate::tacky::tacky_visit_trait::GenerateAsm;
 
 #[derive(Debug)]
 pub enum BinaryOperatorTackyNode {
@@ -86,8 +87,8 @@ impl BinaryOperatorTackyNode {
     }
 }
 
-impl TackyVisitDebug for BinaryOperatorTackyNode {
-    fn visit_debug(&self) {
+impl AstDebugPrinter for BinaryOperatorTackyNode {
+    fn debug_visit(&self) {
         match self {
             BinaryOperatorTackyNode::Add => println!("Add"),
             BinaryOperatorTackyNode::Subtract => println!("Subtract"),

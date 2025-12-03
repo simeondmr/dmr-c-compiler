@@ -16,10 +16,7 @@
 
 use crate::codegen::stack_alloc_table::StackAllocTable;
 
-/// This trait provides a method for visiting an assembly tree and print nodes for debugging
-pub trait AstAsmDebugPrinter {
-    fn debug_visit(&self);
-}
+
 
 /// This trait provides a method for replacing assembly pseudoregister with the effective stack address
 pub trait AsmReplacingPseudoregisters {

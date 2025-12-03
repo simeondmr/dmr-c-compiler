@@ -15,17 +15,18 @@
 // along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 use crate::ast::asm_ast::asm_program_node::AsmProgramNode;
+use crate::ast::lang_ast::lang_ast_visit_trait::AstDebugPrinter;
 use crate::tacky::tacky_function_node::FunctionTackyNode;
-use crate::tacky::tacky_visit_trait::{GenerateAsm, TackyVisitDebug};
+use crate::tacky::tacky_visit_trait::GenerateAsm;
 
 pub enum ProgramTackyNode {
     ProgramDef(Vec<FunctionTackyNode>)
 }
 
-impl TackyVisitDebug for ProgramTackyNode {
-    fn visit_debug(&self) {
+impl AstDebugPrinter for ProgramTackyNode {
+    fn debug_visit(&self) {
         let ProgramTackyNode::ProgramDef(functions) = self;
-        functions.into_iter().for_each(|function| function.visit_debug());
+        functions.into_iter().for_each(|function| function.debug_visit());
     }
 }
 

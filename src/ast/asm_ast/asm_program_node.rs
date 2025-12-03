@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <https://www.gnu.org/licenses/>.
 
-use crate::ast::asm_ast::asm_ast_visit_trait::AstAsmDebugPrinter;
 use crate::ast::asm_ast::asm_function_node::FunctionAsmNode;
+use crate::ast::lang_ast::lang_ast_visit_trait::AstDebugPrinter;
 
 pub enum AsmProgramNode {
     ProgramAsmDef(Vec<FunctionAsmNode>)
 }
 
-impl AstAsmDebugPrinter for AsmProgramNode {
+impl AstDebugPrinter for AsmProgramNode {
     fn debug_visit(&self) {
         let AsmProgramNode::ProgramAsmDef(functions) = self;
         println!("Program(");

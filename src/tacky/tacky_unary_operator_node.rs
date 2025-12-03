@@ -15,7 +15,8 @@
 // along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 use crate::ast::asm_ast::asm_unary_operator_node::AsmUnaryOperatorNode;
-use crate::tacky::tacky_visit_trait::{GenerateAsm, TackyVisitDebug};
+use crate::ast::lang_ast::lang_ast_visit_trait::AstDebugPrinter;
+use crate::tacky::tacky_visit_trait::GenerateAsm;
 
 pub enum UnaryOperatorTackyNode {
     Complement,
@@ -34,8 +35,8 @@ impl GenerateAsm<AsmUnaryOperatorNode> for UnaryOperatorTackyNode {
     }
 }
 
-impl TackyVisitDebug for UnaryOperatorTackyNode {
-    fn visit_debug(&self) {
+impl AstDebugPrinter for UnaryOperatorTackyNode {
+    fn debug_visit(&self) {
         match self {
             UnaryOperatorTackyNode::Complement => println!("Complement"),
             UnaryOperatorTackyNode::Negate => println!("Negate"),

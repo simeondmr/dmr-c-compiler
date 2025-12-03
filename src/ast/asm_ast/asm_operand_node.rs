@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <https://www.gnu.org/licenses/>.
 
-use crate::ast::asm_ast::asm_ast_visit_trait::AstAsmDebugPrinter;
 use crate::ast::asm_ast::asm_registers_node::Reg;
+use crate::ast::lang_ast::lang_ast_visit_trait::AstDebugPrinter;
 
 #[derive(Clone, Debug)]
 pub enum OperandAsmNode {
@@ -27,7 +27,7 @@ pub enum OperandAsmNode {
     Empty,
 }
 
-impl AstAsmDebugPrinter for OperandAsmNode {
+impl AstDebugPrinter for OperandAsmNode {
     fn debug_visit(&self) {
         match self {
             OperandAsmNode::Imm(value) => print!("Imm({})", value),

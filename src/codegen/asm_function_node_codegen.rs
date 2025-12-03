@@ -25,7 +25,7 @@ impl Codegen for FunctionAsmNode {
         if func_name.eq("main") {
             output_file.write_all(format!(".globl _start\n_start:\n").as_bytes())?;
             output_file.write_all(format!("\tcall main\n").as_bytes())?;
-            output_file.write_all(format!("\tmovq %rax, %rdi\n").as_bytes())?;
+            output_file.write_all(format!("\tmovq %rax, %rdi\n").as_bytes())?;//TODO: this instruction can be necessary??
             output_file.write_all(format!("\tmovq $60, %rax\n").as_bytes())?;
             output_file.write_all(format!("\tsyscall\n").as_bytes())?;
         }

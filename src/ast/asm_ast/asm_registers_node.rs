@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <https://www.gnu.org/licenses/>.
 
-use crate::ast::asm_ast::asm_ast_visit_trait::AstAsmDebugPrinter;
+use crate::ast::lang_ast::lang_ast_visit_trait::AstDebugPrinter;
 
 #[derive(Clone, Debug)]
 pub enum Reg {
@@ -43,7 +43,7 @@ pub enum RaxReg {
     RAX
 }
 
-impl AstAsmDebugPrinter for Reg {
+impl AstDebugPrinter for Reg {
     fn debug_visit(&self) {
         match self {
             Reg::AX(rax_reg) => print!("{:?}", rax_reg),

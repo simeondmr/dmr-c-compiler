@@ -17,7 +17,8 @@
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::LazyLock;
 use crate::ast::asm_ast::asm_operand_node::OperandAsmNode;
-use crate::tacky::tacky_visit_trait::{GenerateAsm, TackyVisitDebug};
+use crate::ast::lang_ast::lang_ast_visit_trait::AstDebugPrinter;
+use crate::tacky::tacky_visit_trait::GenerateAsm;
 
 #[derive(Clone, Debug)]
 pub enum ValTackyNode {
@@ -40,8 +41,8 @@ impl GenerateAsm<OperandAsmNode> for ValTackyNode {
     }
 }
 
-impl TackyVisitDebug for ValTackyNode {
-    fn visit_debug(&self) {
+impl AstDebugPrinter for ValTackyNode {
+    fn debug_visit(&self) {
         match self {
             ValTackyNode::Constant(value) => println!("Constant {}", value),
             ValTackyNode::Var(name) => println!("Var t{}", name),

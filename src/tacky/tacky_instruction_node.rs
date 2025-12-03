@@ -18,10 +18,11 @@ use crate::ast::asm_ast::asm_instruction_node::{ConditionCode, InstructionAsmNod
 use crate::ast::asm_ast::asm_operand_node::OperandAsmNode;
 use crate::ast::asm_ast::asm_operand_node::OperandAsmNode::Register;
 use crate::ast::asm_ast::asm_registers_node::{RaxReg, RcxReg, Reg};
+use crate::ast::lang_ast::lang_ast_visit_trait::AstDebugPrinter;
 use crate::tacky::binary_operator_tacky_node::BinaryOperatorTackyNode;
 use crate::tacky::tacky_unary_operator_node::UnaryOperatorTackyNode;
 use crate::tacky::tacky_val_node::ValTackyNode;
-use crate::tacky::tacky_visit_trait::{GenerateAsm, GenerateAsmInstruction, TackyVisitDebug};
+use crate::tacky::tacky_visit_trait::{GenerateAsm, GenerateAsmInstruction};
 
 pub enum InstructionTackyNode {
     Return(ValTackyNode),
@@ -144,59 +145,59 @@ impl GenerateAsmInstruction<()> for InstructionTackyNode {
     }
 }
 
-impl TackyVisitDebug for InstructionTackyNode {
-    fn visit_debug(&self) {
+impl AstDebugPrinter for InstructionTackyNode {
+    fn debug_visit(&self) {
         match self {
             InstructionTackyNode::Return(val) => {
                 println!("Return(");
-                val.visit_debug();
+                val.debug_visit();
                 println!(")");
             },
             InstructionTackyNode::Unary { unary_operator, src, dest} => {
                 println!("UnaryOperator(");
-                unary_operator.visit_debug();
+                unary_operator.debug_visit();
                 print!("src: ");
-                src.visit_debug();
+                src.debug_visit();
                 print!("dest: ");
-                dest.visit_debug();
+                dest.debug_visit();
                 println!(")");
             },
             InstructionTackyNode::Binary { binary_operator, left_expr, right_expr, dest } => {
                 println!("BinaryOperator(");
-                binary_operator.visit_debug();
+                binary_operator.debug_visit();
                 print!("Left expression: ");
-                left_expr.visit_debug();
+                left_expr.debug_visit();
                 print!("Right expression: ");
-                right_expr.visit_debug();
+                right_expr.debug_visit();
                 print!("Dest expression: ");
-                dest.visit_debug();
+                dest.debug_visit();
                 println!(")");
             },
             InstructionTackyNode::Jmp(jmp_label_target) => println!("Jmp l{}", jmp_label_target),
             InstructionTackyNode::JmpIfZero { condition, jmp_label_target } => {
-                condition.visit_debug();
+                condition.debug_visit();
                 println!("JmpIfZero L{}", jmp_label_target);
             },
             InstructionTackyNode::JmpIfNotZero { condition, jmp_label_target } => {
-                condition.visit_debug();
+                condition.debug_visit();
                 println!("JmpIfNotZero l{}", jmp_label_target);
             },
             InstructionTackyNode::Copy {src, dest} => {
                 println!("Copy(");
                 print!("src: ");
-                src.visit_debug();
+                src.debug_visit();
                 print!("dest: ");
-                dest.visit_debug();
+                dest.debug_visit();
                 println!(")");
             },
             InstructionTackyNode::Increment(expr) => {
                 println!("Increment(");
-                expr.visit_debug();
+                expr.debug_visit();
                 println!(")");
             },
             InstructionTackyNode::Decrement(expr) => {
                 println!("Decrement(");
-                expr.visit_debug();
+                expr.debug_visit();
                 println!(")");
             },
             InstructionTackyNode::Label(value) => {

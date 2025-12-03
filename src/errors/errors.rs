@@ -23,7 +23,7 @@ pub enum CompilerErrors {
     LexicalErrorLookahead,
     SyntaxError,
     SemanticError,
-    WrongParams,
+    WrongCompilerParams,
     OperatorPrecedenceError,
     IO(Error)
 }

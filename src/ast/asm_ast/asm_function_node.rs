@@ -15,8 +15,8 @@
 // along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 use std::collections::VecDeque;
-use crate::ast::asm_ast::asm_ast_visit_trait::AstAsmDebugPrinter;
 use crate::ast::asm_ast::asm_instruction_node::InstructionAsmNode;
+use crate::ast::lang_ast::lang_ast_visit_trait::AstDebugPrinter;
 
 /// This enum provides a Node for defining functions node
 pub enum FunctionAsmNode {
@@ -27,7 +27,7 @@ pub enum FunctionAsmNode {
     }
 }
 
-impl AstAsmDebugPrinter for FunctionAsmNode {
+impl AstDebugPrinter for FunctionAsmNode {
     fn debug_visit(&self) {
         let FunctionAsmNode::FunctionAsmDef { func_name, stack_alloc_size, ref asm_instructions} = self;
         println!("Function(\nname = {func_name}, stack_alloc: {} bytes", stack_alloc_size.abs() );

@@ -19,8 +19,9 @@ use crate::ast::asm_ast::asm_function_node::FunctionAsmNode;
 use crate::ast::asm_ast::asm_instruction_node::InstructionAsmNode;
 use crate::ast::asm_ast::asm_operand_node::OperandAsmNode;
 use crate::ast::asm_ast::asm_registers_node::{RcxReg, Reg};
+use crate::ast::lang_ast::lang_ast_visit_trait::AstDebugPrinter;
 use crate::tacky::tacky_instruction_node::InstructionTackyNode;
-use crate::tacky::tacky_visit_trait::{GenerateAsm, GenerateAsmInstruction, TackyVisitDebug};
+use crate::tacky::tacky_visit_trait::{GenerateAsm, GenerateAsmInstruction};
 
 pub enum FunctionTackyNode {
     FunctionDef {
@@ -55,10 +56,10 @@ impl GenerateAsm<FunctionAsmNode> for FunctionTackyNode {
     }
 }
 
-impl TackyVisitDebug for FunctionTackyNode{
-    fn visit_debug(&self) {
+impl AstDebugPrinter for FunctionTackyNode {
+    fn debug_visit(&self) {
         let FunctionTackyNode::FunctionDef { func_name, params: _, tacky_instructions } = self;
         println!("Name: {}", func_name);
-        tacky_instructions.iter().for_each(|instruction| instruction.visit_debug());
+        tacky_instructions.iter().for_each(|instruction| instruction.debug_visit());
     }
 }
