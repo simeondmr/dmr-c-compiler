@@ -20,6 +20,7 @@ use crate::ast::asm_ast::asm_ast_visit_trait::{AsmReplacingPseudoregisters, Fixi
 use crate::ast::asm_ast::asm_program_node::AsmProgramNode;
 use crate::codegen::stack_alloc_table::StackAllocTable;
 use crate::codegen::asm_codegen_trait::Codegen;
+use crate::symbol_table::symbol_table::SymbolTable;
 
 pub struct CodegenCore<'a> {
     output_path : &'a Path
@@ -32,11 +33,11 @@ impl <'a> CodegenCore<'a> {
         }
     }
 
-    pub fn codegen(&self, asm_ast: &mut AsmProgramNode)-> std::io::Result<()>  {
+    pub fn codegen(&self, symbol_table: &SymbolTable, asm_ast: &mut AsmProgramNode)-> std::io::Result<()>  {
         let mut stack_alloc_table = StackAllocTable::new();
         asm_ast.replacing_pseudoregisters(&mut stack_alloc_table);
         asm_ast.fixing_instructions();
         let mut output_file = File::create(self.output_path)?;
-        asm_ast.codegen(&mut output_file)
+        asm_ast.codegen(symbol_table, &mut output_file)
     }
 }

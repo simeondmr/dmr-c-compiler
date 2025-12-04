@@ -18,9 +18,10 @@ use std::fs::File;
 use std::io::{Error, Write};
 use crate::ast::asm_ast::asm_registers_node::Reg;
 use crate::codegen::asm_codegen_trait::Codegen;
+use crate::symbol_table::symbol_table::SymbolTable;
 
 impl Codegen for Reg {
-    fn codegen(&self, output_file: &mut File) -> Result<(), Error> {
+    fn codegen(&self, _symbol_table: &SymbolTable, output_file: &mut File) -> Result<(), Error> {
         match self {
             Reg::AX(rax_reg) => Ok(output_file.write_all(format!("%{:?}", rax_reg).as_bytes())?),
             Reg::CX(part) => Ok(output_file.write_all(format!("%{:?}", part).as_bytes())?),

@@ -55,8 +55,7 @@ pub enum InstructionTackyNode {
     FuncCall {
         func_name: String,
         args: Vec<ValTackyNode>,
-        ret_val: ValTackyNode,
-        has_body: bool
+        ret_val: ValTackyNode
     },
     Label(u32)
 }
@@ -111,7 +110,7 @@ impl GenerateAsmInstruction<()> for InstructionTackyNode {
             InstructionTackyNode::Decrement(expr) => asm_instructions.push_back(InstructionAsmNode::Dec(expr.to_asm())),
             InstructionTackyNode::Copy { src, dest} => asm_instructions.push_back(InstructionAsmNode::Mov { src: src.to_asm(), dest: dest.to_asm() }),
             InstructionTackyNode::Label(index) => asm_instructions.push_back(InstructionAsmNode::Label(*index)),
-            InstructionTackyNode::FuncCall { func_name, args, ret_val, has_body } => {
+            InstructionTackyNode::FuncCall { func_name, args, ret_val } => {
                 let arg_registers = [Reg::DI, Reg::SI, Reg::DX, Reg::CX(RcxReg::ECX), Reg::R8, Reg::R9];
                 let registers_len = arg_registers.len();
                 let mut padding = 0;
@@ -134,7 +133,7 @@ impl GenerateAsmInstruction<()> for InstructionTackyNode {
                         asm_instructions.push_back(InstructionAsmNode::Push(Register(Reg::AX(RaxReg::RAX))));
                     }
                 }
-                asm_instructions.push_back(InstructionAsmNode::Call { func_name: func_name.clone(), has_body: *has_body });
+                asm_instructions.push_back(InstructionAsmNode::Call { func_name: func_name.clone() });
                 let byte_to_remove_sp = padding as u64 + 8 * param_stack_len;
                 if byte_to_remove_sp > 0 {
                     asm_instructions.push_back(InstructionAsmNode::DeallocateStack(byte_to_remove_sp));
@@ -203,7 +202,7 @@ impl AstDebugPrinter for InstructionTackyNode {
             InstructionTackyNode::Label(value) => {
                 println!("l{}:", value);
             },
-            InstructionTackyNode::FuncCall { func_name, args, ret_val, has_body: _ } => {
+            InstructionTackyNode::FuncCall { func_name, args, ret_val } => {
                 println!("FuncCall {} {:?} {:?}", func_name, args, ret_val)
             }
         }

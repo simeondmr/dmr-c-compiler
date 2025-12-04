@@ -16,7 +16,8 @@
 
 use std::fs::File;
 use std::io::Error;
+use crate::symbol_table::symbol_table::SymbolTable;
 
 pub trait Codegen {
-    fn codegen(&self, output_file: &mut File) -> Result<(), Error>;
+    fn codegen(&self, symbol_table: &SymbolTable, output_file: &mut File) -> Result<(), Error>;
 }

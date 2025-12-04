@@ -21,6 +21,7 @@ use crate::errors::errors::CompilerErrors;
 use crate::lexer::lexer::Lexer;
 use crate::parser::program_parse::{GrammarProductionParsing, ProgramParse};
 use crate::semantic_analisys;
+use crate::symbol_table::symbol_table::SymbolTable;
 use crate::tacky::tacky_visit_trait::GenerateAsm;
 
 pub fn compiler_driver(args: Vec<String>) -> Result<(), CompilerErrors> {
@@ -34,14 +35,15 @@ pub fn compiler_driver(args: Vec<String>) -> Result<(), CompilerErrors> {
     let mut lexer = Lexer::new(&Path::new(args.get(1).unwrap()));
     let mut ast = program.parse(&mut lexer)?;
     ast_debug("AST visit after parsing:", &ast, debug);
-    semantic_analisys::semantic_analisys_core::semantic_analisys(&mut ast)?;
+    let mut symbol_table = SymbolTable::new();
+    semantic_analisys::semantic_analisys_core::semantic_analisys(&mut ast, &mut symbol_table)?;
     ast_debug("AST visit after semantic analisys:", &ast, debug);
     let tacky = ast.to_tacky();
     ast_debug("Tacky debug:", &tacky, debug);
     let mut asm_ast = tacky.to_asm();
     ast_debug("Asm debug before code fixing:", &asm_ast, debug);
     let codegen_core = CodegenCore::new(&Path::new(args.get(2).unwrap()));
-    codegen_core.codegen(&mut asm_ast).map_err(CompilerErrors::IO)?;
+    codegen_core.codegen(&symbol_table, &mut asm_ast).map_err(CompilerErrors::IO)?;
     ast_debug("Asm debug after code fixing", &asm_ast, debug);
     println!("Compilation done");
     Ok(())

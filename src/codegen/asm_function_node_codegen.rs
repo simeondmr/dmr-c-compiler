@@ -18,9 +18,10 @@ use std::fs::File;
 use std::io::{Error, Write};
 use crate::ast::asm_ast::asm_function_node::FunctionAsmNode;
 use crate::codegen::asm_codegen_trait::Codegen;
+use crate::symbol_table::symbol_table::SymbolTable;
 
 impl Codegen for FunctionAsmNode {
-    fn codegen(&self, output_file: &mut File) -> Result<(), Error> {
+    fn codegen(&self, symbol_table: &SymbolTable, output_file: &mut File) -> Result<(), Error> {
         let FunctionAsmNode::FunctionAsmDef { func_name, stack_alloc_size: _, ref asm_instructions } = self;
         if func_name.eq("main") {
             output_file.write_all(format!(".globl _start\n_start:\n").as_bytes())?;
@@ -33,7 +34,7 @@ impl Codegen for FunctionAsmNode {
         output_file.write_all(format!("{}:\n", func_name).as_bytes())?;
         output_file.write_all("\tpushq %rbp\n".as_bytes())?;
         output_file.write_all("\tmovq %rsp, %rbp\n".as_bytes())?;
-        asm_instructions.iter().try_for_each(|instruction| instruction.codegen(output_file))?;
+        asm_instructions.iter().try_for_each(|instruction| instruction.codegen(symbol_table, output_file))?;
         Ok(())
     }
 }

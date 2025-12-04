@@ -7,9 +7,9 @@ int max(int a, int b) {
 int main(void) {
     int val0 = 5;
     int val1 = 12;
-    int val1 = 3;
-    int val2 = 29;
-    int val3 = 2;
+    int val2 = 3;
+    int val3 = 29;
+    int val4 = 2;
     int m = val0;
 
     m = max(m, val1);

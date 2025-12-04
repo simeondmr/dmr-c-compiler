@@ -24,11 +24,10 @@ use crate::semantic_analisys::identifier_table::IdentifierTable;
 use crate::semantic_analisys::type_check_semantic_analisys_trait::TypeCheck;
 use crate::symbol_table::symbol_table::SymbolTable;
 
-pub fn semantic_analisys(program_node: &mut ProgramNode) -> Result<(), CompilerErrors> {
+pub fn semantic_analisys(program_node: &mut ProgramNode, symbol_table: &mut SymbolTable) -> Result<(), CompilerErrors> {
     let mut identifier_table = IdentifierTable::new();
     let mut label_map: HashMap<String, u32> = HashMap::new();
-    let mut symbol_table = SymbolTable::new();
     program_node.resolve(&mut identifier_table, &mut label_map)?;
     program_node.check_goto_label_break_continue(false, false, &mut label_map, &mut LoopLabels::new(), &mut None, &mut None)?;
-    program_node.type_check(&mut symbol_table, false)
+    program_node.type_check(symbol_table, false)
 }

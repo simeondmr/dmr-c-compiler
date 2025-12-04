@@ -18,33 +18,34 @@ use std::fs::File;
 use std::io::{Error, Write};
 use crate::ast::asm_ast::asm_instruction_node::InstructionAsmNode;
 use crate::codegen::asm_codegen_trait::Codegen;
+use crate::symbol_table::symbol_table::SymbolTable;
 
 impl Codegen for InstructionAsmNode {
-    fn codegen(&self, output_file: &mut File) -> Result<(), Error> {
+    fn codegen(&self, symbol_table: &SymbolTable, output_file: &mut File) -> Result<(), Error> {
         match self {
             InstructionAsmNode::Mov { src, dest} => {
                 output_file.write_all("\tmovl ".as_bytes())?;
-                src.codegen(output_file)?;
+                src.codegen(symbol_table, output_file)?;
                 output_file.write_all(", ".as_bytes())?;
-                dest.codegen(output_file)?;
+                dest.codegen(symbol_table, output_file)?;
                 Ok(output_file.write_all("\n".as_bytes())?)
             },
             InstructionAsmNode::Unary { operator, operand} => {
-                operator.codegen(output_file)?;
-                operand.codegen(output_file)?;
+                operator.codegen(symbol_table, output_file)?;
+                operand.codegen(symbol_table, output_file)?;
                 Ok(output_file.write_all("\n".as_bytes())?)
             },
             InstructionAsmNode::Binary { operator, src, dest } => {
-                operator.codegen(output_file)?;
-                src.codegen(output_file)?;
+                operator.codegen(symbol_table, output_file)?;
+                src.codegen(symbol_table, output_file)?;
                 output_file.write_all(", ".as_bytes())?;
-                dest.codegen(output_file)?;
+                dest.codegen(symbol_table, output_file)?;
                 Ok(output_file.write_all("\n".as_bytes())?)
 
             },
             InstructionAsmNode::Idiv(operator) => {
                 output_file.write_all("\tidivl ".as_bytes())?;
-                operator.codegen(output_file)?;
+                operator.codegen(symbol_table, output_file)?;
                 Ok(output_file.write_all("\n".as_bytes())?)
             },
             InstructionAsmNode::Cdq => Ok(output_file.write_all("\tcdq\n".as_bytes())?),
@@ -52,9 +53,9 @@ impl Codegen for InstructionAsmNode {
             InstructionAsmNode::DeallocateStack(size) => Ok(output_file.write_all(format!("\taddq ${}, %rsp\n", size).as_bytes())?),
             InstructionAsmNode::Cmp(operand0, operand1) => {
                 output_file.write_all("\tcmpl ".as_bytes())?;
-                operand0.codegen(output_file)?;
+                operand0.codegen(symbol_table, output_file)?;
                 output_file.write_all(", ".as_bytes())?;
-                operand1.codegen(output_file)?;
+                operand1.codegen(symbol_table, output_file)?;
                 Ok(output_file.write_all("\n".as_bytes())?)
             },
             InstructionAsmNode::Jmp(jmp_label_target) => Ok(output_file.write_all(format!("\tjmp .l{}\n", jmp_label_target).as_bytes())?),
@@ -65,25 +66,25 @@ impl Codegen for InstructionAsmNode {
                           For example if registers allocator for set decided to use 'rax' register, set must use 'al'
                 */
                 output_file.write_all(format!("\tset{} ", condition_code.code()).as_bytes())?;
-                dest.codegen(output_file)?;
+                dest.codegen(symbol_table, output_file)?;
                 Ok(output_file.write_all("\n".as_bytes())?)
             },
             InstructionAsmNode::Inc(operand) => {
                 output_file.write_all("\tincl ".as_bytes())?;
-                operand.codegen(output_file)?;
+                operand.codegen(symbol_table, output_file)?;
                 Ok(output_file.write_all("\n".as_bytes())?)
             },
             InstructionAsmNode::Dec(operand) => {
                 output_file.write_all("\tdecl ".as_bytes())?;
-                operand.codegen(output_file)?;
+                operand.codegen(symbol_table, output_file)?;
                 Ok(output_file.write_all("\n".as_bytes())?)
             },
             InstructionAsmNode::Push(operand) => {
                 output_file.write_all("\tpushq ".as_bytes())?;
-                operand.codegen(output_file)?;
+                operand.codegen(symbol_table, output_file)?;
                 Ok(output_file.write_all("\n".as_bytes())?)
             },
-            InstructionAsmNode::Call { func_name, has_body} => Ok(output_file.write_all(format!("\tcall {func_name}{}\n", if !has_body { "@PLT" } else { "" }).as_bytes())?),
+            InstructionAsmNode::Call { func_name} => Ok(output_file.write_all(format!("\tcall {func_name}{}\n", if !symbol_table.func_defined(func_name) { "@PLT" } else { "" }).as_bytes())?),
             InstructionAsmNode::LinuxExitSyscall => Ok(output_file.write_all("\tmovq $60, %rax\n\tsyscall\n".as_bytes())?),
             InstructionAsmNode::Label(index) => Ok(output_file.write_all(format!(".l{index}:\n").as_bytes())?),
             InstructionAsmNode::Ret => {

@@ -52,8 +52,7 @@ pub enum InstructionAsmNode {
     Dec(OperandAsmNode),
     Push(OperandAsmNode),
     Call {
-        func_name: String,
-        has_body: bool
+        func_name: String
     },
     LinuxExitSyscall,
     Label(u32),
@@ -120,7 +119,7 @@ impl AstDebugPrinter for InstructionAsmNode {
             InstructionAsmNode::Inc(operand) => println!("inc {:?}", operand),
             InstructionAsmNode::Dec(operand) => println!("dec {:?}", operand),
             InstructionAsmNode::Push(operand) => println!("push {:?}", operand),
-            InstructionAsmNode::Call { func_name, has_body} => println!("call {func_name} {has_body}"),
+            InstructionAsmNode::Call { func_name} => println!("call {func_name}"),
             InstructionAsmNode::LinuxExitSyscall => println!("LinuxExitSyscall"),
             InstructionAsmNode::Label(index) => println!(".l{}:", index),
             InstructionAsmNode::Ret => println!("Ret")

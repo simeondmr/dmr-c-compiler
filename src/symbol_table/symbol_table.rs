@@ -175,21 +175,29 @@ impl SymbolTable {
         Err(CompilerErrors::SemanticError)
     }
 
-    pub fn is_func(&self, name: &str, args: usize) -> Result<bool, CompilerErrors> {
+    pub fn is_func(&self, name: &str, args: usize) -> Result<(), CompilerErrors> {
         let symbol = self.lookup(name);
-        let mut has_body = false;
         if let Some(symbol_info) = symbol {
-            if let SymbolInfo::Function { params_len, defined } = symbol_info.symbol_info {
+            if let SymbolInfo::Function { params_len, defined: _ } = symbol_info.symbol_info {
                 if params_len != args {
                     eprintln!("Error: function was defined with {} params, but the function call is with {} params", params_len, args);
                     return Err(CompilerErrors::SemanticError)
                 }
-                has_body = defined;
             } else {
                 eprintln!("Error: {} is not a function", name);
                 return Err(CompilerErrors::SemanticError)
             }
         }
-        Ok(has_body)
+        Ok(())
+    }
+
+    pub fn func_defined(&self, name: &str) -> bool {
+        let symbol = self.lookup(name);
+        if let Some(symbol_info) = symbol {
+            if let SymbolInfo::Function { params_len: _, defined } = symbol_info.symbol_info {
+                return defined;
+            }
+        }
+        false
     }
 }

@@ -18,9 +18,10 @@ use std::fs::File;
 use std::io::{Error, Write};
 use crate::ast::asm_ast::asm_binary_operator_node::AsmBinaryOperatorNode;
 use crate::codegen::asm_codegen_trait::Codegen;
+use crate::symbol_table::symbol_table::SymbolTable;
 
 impl Codegen for AsmBinaryOperatorNode {
-    fn codegen(&self, output_file: &mut File) -> Result<(), Error> {
+    fn codegen(&self, _symbol_table: &SymbolTable, output_file: &mut File) -> Result<(), Error> {
         match self {
             AsmBinaryOperatorNode::Add =>  Ok(output_file.write_all("\taddl ".as_bytes())?),
             AsmBinaryOperatorNode::Subtract => Ok(output_file.write_all("\tsubl ".as_bytes())?),

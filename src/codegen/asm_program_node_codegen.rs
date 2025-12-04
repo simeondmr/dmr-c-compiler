@@ -18,12 +18,13 @@ use std::fs::File;
 use std::io::Error;
 use crate::ast::asm_ast::asm_program_node::AsmProgramNode;
 use crate::codegen::asm_codegen_trait::Codegen;
+use crate::symbol_table::symbol_table::SymbolTable;
 
 impl Codegen for AsmProgramNode {
-    fn codegen(&self, output_file: &mut File) -> Result<(), Error> {
+    fn codegen(&self, symbol_table: &SymbolTable, output_file: &mut File) -> Result<(), Error> {
         let AsmProgramNode::ProgramAsmDef(functions) = self;
         for function in functions {
-            function.codegen(output_file)?;
+            function.codegen(symbol_table, output_file)?;
         }
         Ok(())
     }
